@@ -21,6 +21,8 @@ class ViewController: UIViewController {
             button.centerXAnchor.constraint(equalTo: view.centerXAnchor),
             button.centerYAnchor.constraint(equalTo: view.centerYAnchor)
         ])
+
+        openPageSheet()
     }
     
     @objc func openPageSheet() {
@@ -36,4 +38,11 @@ class ViewController: UIViewController {
         present(viewController, animated: true)
     }
     
+}
+
+extension UIImage {
+    convenience init?(bundleImageName: String) {
+        let name = bundleImageName.split(separator: "/").last ?? ""
+        self.init(named: String(name))
+    }
 }

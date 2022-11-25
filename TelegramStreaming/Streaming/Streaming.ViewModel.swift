@@ -44,10 +44,6 @@ extension Streaming.ViewModel: StreamingViewModel {
         }
     }
 
-    var shouldShowMoreButton: Bool {
-        true
-    }
-
     var shouldShowPipButton: Bool {
         true
     }

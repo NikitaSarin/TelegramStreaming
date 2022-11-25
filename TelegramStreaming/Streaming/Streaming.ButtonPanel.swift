@@ -61,21 +61,24 @@ private extension Streaming.ButtonPanel {
             CircleButton(
                 title: "share",
                 background: blueColor,
-                imageName: ""
+                imageName: "Call/CallShareButton",
+                imageInset: 0
             ) { [weak self] in
                 self?.delegate?.shareButtonTapped()
             },
             CircleButton(
                 title: "expand",
                 background: blueColor,
-                imageName: ""
+                imageName: "Call/Expand",
+                imageInset: 18
             ) { [weak self] in
                 self?.delegate?.expandButtonTapped()
             },
             CircleButton(
                 title: "leave",
                 background: redColor,
-                imageName: ""
+                imageName: "Call/CallCancelButton",
+                imageInset: 18
             ) { [weak self] in
                 self?.delegate?.leaveButtonTapped()
             }

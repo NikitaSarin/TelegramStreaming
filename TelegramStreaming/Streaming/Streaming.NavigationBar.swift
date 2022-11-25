@@ -9,8 +9,6 @@ import UIKit
 
 protocol StreamingNavigationBarDelegate: AnyObject {
 
-    var shouldShowMoreButton: Bool { get }
-
     var shouldShowPipButton: Bool { get }
 
     func pipButtonTapped()
@@ -20,13 +18,16 @@ protocol StreamingNavigationBarDelegate: AnyObject {
 
 extension Streaming {
 
-    final class NavigationBar: UIStackView {
+    final class NavigationBar: UIView {
 
         private lazy var moreButton = UIButton {
             $0.layer.cornerRadius = Appearence.buttonEdge / 2
             $0.backgroundColor = Appearence.buttonBackground
-            $0.setImage(UIImage(named: ""), for: .normal)
-            $0.isHidden = delegate?.shouldShowMoreButton != true
+            let image = UIImage(bundleImageName: "PeerInfo/ButtonMore")?
+                .withRenderingMode(.alwaysTemplate)
+            $0.setImage(image, for: .normal)
+            $0.tintColor = .white
+            $0.isHidden = true
         }
 
         private let title: Title
@@ -34,7 +35,11 @@ extension Streaming {
         private lazy var pipButton = UIButton {
             $0.layer.cornerRadius = Appearence.buttonEdge / 2
             $0.backgroundColor = Appearence.buttonBackground
-            $0.setImage(UIImage(named: ""), for: .normal)
+            let image = UIImage(bundleImageName: "Media Gallery/PictureInPictureButton")?
+                .withRenderingMode(.alwaysTemplate)
+            $0.setImage(image, for: .normal)
+            $0.tintColor = .white
+            $0.imageEdgeInsets = UIEdgeInsets(top: 2, left: 2, bottom: 2, right: 2)
             $0.isHidden = delegate?.shouldShowPipButton != true
         }
 
@@ -60,29 +65,40 @@ extension Streaming.NavigationBar {
     func set(live: Bool) {
         title.set(live: live)
     }
-}
 
+    func setMoreButton(visible: Bool) {
+        moreButton.isHidden = !visible
+    }
+}
 
 private extension Streaming.NavigationBar {
 
     enum Appearence {
         static let buttonEdge: CGFloat = 28
-        static let buttonBackground = UIColor(red: 32 / 255,
-                                              green: 32 / 255,
-                                              blue: 34 / 255,
+        static let buttonBackground = UIColor(red: 50 / 255,
+                                              green: 50 / 255,
+                                              blue: 53 / 255,
                                               alpha: 1)
     }
 
     func setup() {
-        axis = .horizontal
-        distribution = .equalCentering
-
-        addArrangedSubviews(moreButton, title, pipButton)
+        [moreButton, title, pipButton].forEach {
+            $0.translatesAutoresizingMaskIntoConstraints = false
+            addSubview($0)
+        }
 
         NSLayoutConstraint.activate([
+            moreButton.leadingAnchor.constraint(equalTo: leadingAnchor),
+            moreButton.centerYAnchor.constraint(equalTo: centerYAnchor),
             moreButton.heightAnchor.constraint(equalToConstant: Appearence.buttonEdge),
             moreButton.widthAnchor.constraint(equalTo: moreButton.heightAnchor),
 
+            title.centerXAnchor.constraint(equalTo: centerXAnchor),
+            title.centerYAnchor.constraint(equalTo: centerYAnchor),
+            title.topAnchor.constraint(equalTo: topAnchor),
+
+            pipButton.trailingAnchor.constraint(equalTo: trailingAnchor),
+            pipButton.centerYAnchor.constraint(equalTo: centerYAnchor),
             pipButton.heightAnchor.constraint(equalToConstant: Appearence.buttonEdge),
             pipButton.widthAnchor.constraint(equalTo: pipButton.heightAnchor),
         ])
@@ -133,19 +149,21 @@ extension Streaming.NavigationBar.Title {
         isLive = live
         liveLabelContainer.backgroundColor = live ? Appearence.liveColor : Appearence.pendingColor
 
-        liveLabel.layer.removeAllAnimations()
-        liveLabelContainer.layer.removeAllAnimations()
-
-        let transform = CATransform3DScale(CATransform3DIdentity, 1.14, 1.14, 1)
-        let animation = CABasicAnimation(keyPath: "transform")
-        animation.duration = 0.14
-        animation.fromValue = NSValue(caTransform3D: CATransform3DIdentity)
-        animation.toValue = NSValue(caTransform3D: transform)
-        animation.autoreverses = true
-        animation.timingFunction = CAMediaTimingFunction(name: .easeInEaseOut)
-
-        liveLabel.layer.add(animation, forKey: "transform")
-        liveLabelContainer.layer.add(animation, forKey: "transform")
+        if live {
+            liveLabel.layer.removeAllAnimations()
+            liveLabelContainer.layer.removeAllAnimations()
+            
+            let transform = CATransform3DScale(CATransform3DIdentity, 1.14, 1.14, 1)
+            let animation = CABasicAnimation(keyPath: "transform")
+            animation.duration = 0.14
+            animation.fromValue = NSValue(caTransform3D: CATransform3DIdentity)
+            animation.toValue = NSValue(caTransform3D: transform)
+            animation.autoreverses = true
+            animation.timingFunction = CAMediaTimingFunction(name: .easeInEaseOut)
+            
+            liveLabel.layer.add(animation, forKey: "transform")
+            liveLabelContainer.layer.add(animation, forKey: "transform")
+        }
     }
 }
 

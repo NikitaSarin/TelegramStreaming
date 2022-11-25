@@ -59,6 +59,10 @@ extension Streaming.ViewController {
 
 extension Streaming.ViewController {
 
+    func setMoreButton(visible: Bool) {
+        navigationBar.setMoreButton(visible: visible)
+    }
+
     func set(preview: UIImage) {
         videoView.set(preview: preview)
     }
@@ -119,7 +123,7 @@ private extension Streaming.ViewController {
 
         NSLayoutConstraint.activate([
             navigationBar.topAnchor.constraint(equalTo: contentView.topAnchor),
-            navigationBar.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 20),
+            navigationBar.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 14),
             navigationBar.centerXAnchor.constraint(equalTo: contentView.centerXAnchor),
 
             videoView.topAnchor.constraint(equalTo: navigationBar.bottomAnchor, constant: 12),

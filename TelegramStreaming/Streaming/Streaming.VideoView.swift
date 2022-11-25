@@ -105,7 +105,7 @@ private extension Streaming.VideoView {
     func setup() {
         backgroundColor = .black
         clipsToBounds = true
-        layer.cornerRadius = 12
+        layer.cornerRadius = 10
 
         func add(_ subview: UIView) {
             subview.translatesAutoresizingMaskIntoConstraints = false
@@ -138,6 +138,6 @@ private extension Streaming.VideoView {
         animation.fillMode = .forwards
         animation.timingFunction = CAMediaTimingFunction(name: .easeIn)
         animation.repeatCount = .infinity
-        gradientLayer.add(animation, forKey: nil)
+        gradientLayer.add(animation, forKey: "blink")
     }
 }

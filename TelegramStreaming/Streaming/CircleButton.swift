@@ -26,18 +26,21 @@ final class CircleButton: UIControl {
         $0.textColor = .white
     }
 
+    private let imageInset: CGFloat
     private let action: VoidClosure?
 
     init(
         title: String,
         background: UIColor,
         imageName: String,
+        imageInset: CGFloat = 8,
         action: VoidClosure?
     ) {
+        self.imageInset = imageInset
         self.action = action
         super.init(frame: .zero)
 
-        imageView.image = UIImage(named: imageName)
+        imageView.image = UIImage(bundleImageName: imageName)
         imageContainer.backgroundColor = background
         label.text = title
 
@@ -72,9 +75,9 @@ private extension CircleButton {
             imageContainer.heightAnchor.constraint(equalTo: imageContainer.widthAnchor),
 
             imageView.topAnchor.constraint(equalTo: imageContainer.topAnchor,
-                                           constant: 8),
+                                           constant: imageInset),
             imageView.leadingAnchor.constraint(equalTo: imageContainer.leadingAnchor,
-                                               constant: 8),
+                                               constant: imageInset),
             imageView.centerXAnchor.constraint(equalTo: imageContainer.centerXAnchor),
             imageView.centerYAnchor.constraint(equalTo: imageContainer.centerYAnchor),
 
