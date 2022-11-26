@@ -19,6 +19,13 @@ extension Streaming {
             case miniPreview
         }
 
+        enum PreviewPlacement {
+            case topLeading
+            case topTrailing
+            case bottomLeading
+            case bottomTrailing
+        }
+
         private let containerView = UIView {
             $0.layer.cornerRadius = Appearence.cornerRadius
             $0.backgroundColor = UIColor(red: 28 / 255,
@@ -37,6 +44,20 @@ extension Streaming {
             $0.textColor = .white
         }
         private lazy var panel = ButtonPanel(delegate: viewModel)
+
+        private lazy var previewPanGesture: UIPanGestureRecognizer = {
+            let gesture = UIPanGestureRecognizer(target: self,
+                                                 action: #selector(didPanPreview(gesture:)))
+            gesture.delegate = self
+            return gesture
+        }()
+
+        private lazy var pageSheetPanGesture: UIPanGestureRecognizer = {
+            let gesture = UIPanGestureRecognizer(target: self,
+                                                 action: #selector(didPanPageSheet(gesture:)))
+            gesture.delegate = self
+            return gesture
+        }()
 
         private lazy var containerBottomConstraint = containerView.bottomAnchor.constraint(
             equalTo: view.bottomAnchor,
@@ -64,7 +85,17 @@ extension Streaming {
     }
 }
 
+// MARK: - Override
+
 extension Streaming.ViewController {
+
+    override var supportedInterfaceOrientations: UIInterfaceOrientationMask {
+        mode == .pageSheet ? .portrait : .all
+    }
+
+    override var shouldAutorotate: Bool {
+        mode != .pageSheet
+    }
 
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -87,15 +118,20 @@ extension Streaming.ViewController {
         case .fullScreen:
             videoView.frame = view.bounds
         case .miniPreview:
-            let offset: CGFloat = 8
-            let width = (view.bounds.width - offset * 2) * 0.6
-            let height = width / (16 / 9)
-            let x = view.bounds.width - width - offset
-            let y = view.safeAreaInsets.top + offset
-            videoView.frame = CGRect(x: x, y: y, width: width, height: height)
+            videoView.frame.size = videoViewSize
+        }
+    }
+
+    override func dismiss(animated flag: Bool, completion: (() -> Void)? = nil) {
+        super.dismiss(animated: flag) {
+            Streaming.window?.resignKey()
+            Streaming.window = nil
+            completion?()
         }
     }
 }
+
+// MARK: - Interface
 
 extension Streaming.ViewController {
 
@@ -124,11 +160,62 @@ extension Streaming.ViewController {
     }
 }
 
+
+// MARK: - UIGestureRecognizerDelegate
+
+extension Streaming.ViewController: UIGestureRecognizerDelegate {
+
+    func gestureRecognizerShouldBegin(_ gestureRecognizer: UIGestureRecognizer) -> Bool {
+        switch gestureRecognizer {
+        case previewPanGesture:
+            return mode == .miniPreview
+        case pageSheetPanGesture:
+            return mode == .pageSheet
+        default:
+            return true
+        }
+    }
+}
+
+// MARK: - StreamingWindowDelegate
+
+extension Streaming.ViewController: StreamingWindowDelegate {
+
+    func hitTest(_ point: CGPoint, with event: UIEvent?) -> UIView? {
+        let result = view.hitTest(point, with: event)
+        if mode == .miniPreview, result == view {
+            return nil
+        } else {
+            return result
+        }
+    }
+}
+
+// MARK: - Layout
+
 private extension Streaming.ViewController {
 
     enum Appearence {
+        static let previewOffset: CGFloat = 8
         static let cornerRadius: CGFloat = 12
-        static let coontainerHeight: CGFloat = 500
+        static let contentHeight: CGFloat = 500
+    }
+
+    var videoViewSize: CGSize {
+        switch mode {
+        case .pageSheet:
+            let offset: CGFloat = 12
+            let width = view.bounds.width - offset * 2
+            let height = width / (16 / 9)
+            return CGSize(width: width, height: height)
+        case .miniPreview:
+            let offset: CGFloat = 8
+            let width = (view.bounds.width - offset * 2) * 0.6
+            let height = width / (16 / 9)
+            return CGSize(width: width, height: height)
+        case .fullScreen:
+            return view.bounds.size
+        }
     }
 
     func setup() {
@@ -163,6 +250,9 @@ private extension Streaming.ViewController {
     }
 
     func setupContent() {
+        videoView.addGestureRecognizer(previewPanGesture)
+        containerView.addGestureRecognizer(pageSheetPanGesture)
+
         [navigationBar, numberView, wathingLabel, panel].forEach {
             $0.translatesAutoresizingMaskIntoConstraints = false
             contentView.addSubview($0)
@@ -202,18 +292,113 @@ private extension Streaming.ViewController {
         let isPageSheet = mode == .pageSheet
         containerTopConstraint.isActive = !isPageSheet
         containerBottomConstraint.isActive = isPageSheet
+        videoView.isUserInteractionEnabled = !isPageSheet
 
         UIView.animate(
-            withDuration: 0.5,
+            withDuration: 0.6,
             delay: 0,
             usingSpringWithDamping: 0.72,
             initialSpringVelocity: 0.05
         ) { [self] in
+            if mode == .miniPreview {
+                let size = videoViewSize
+                let offset: CGFloat = 8
+                let x = view.bounds.width - size.width - offset
+                let y = view.safeAreaInsets.top + offset
+                videoView.frame = CGRect(origin: CGPoint(x: x, y: y), size: size)
+            }
             videoView.setCloseButtonLarge(mode == .fullScreen)
             videoView.closeButton.alpha = isPageSheet ? 0 : 1
             videoView.layer.cornerRadius = radius
             view.setNeedsLayout()
             view.layoutIfNeeded()
         }
+    }
+}
+
+// MARK: - Page Sheet
+
+private extension Streaming.ViewController {
+
+    @objc func didPanPageSheet(gesture: UIPanGestureRecognizer) {
+        switch gesture.state {
+        case .changed:
+            let translation = gesture.translation(in: view)
+            let from = containerBottomConstraint.constant
+            let to = from + translation.y
+            containerBottomConstraint.constant = max(to, Appearence.cornerRadius)
+            gesture.setTranslation(.zero, in: view)
+        case .ended, .failed, .cancelled:
+            let needDismiss = containerBottomConstraint.constant > Appearence.contentHeight * 0.3
+            if needDismiss {
+                dismiss(animated: true)
+            } else {
+                containerBottomConstraint.constant = Appearence.cornerRadius
+                UIView.animate(
+                    withDuration: 0.25,
+                    delay: 0,
+                    options: .curveEaseInOut
+                ) { [self] in
+                    view.layoutIfNeeded()
+                }
+            }
+        default: break
+        }
+    }
+}
+
+// MARK: - Preview
+
+private extension Streaming.ViewController {
+
+    @objc func didPanPreview(gesture: UIPanGestureRecognizer) {
+        switch gesture.state {
+        case .changed:
+            let translation = gesture.translation(in: view)
+            let from = videoView.frame.origin
+            videoView.frame.origin = CGPoint(x: from.x + translation.x, y: from.y + translation.y)
+            gesture.setTranslation(.zero, in: view)
+        case .ended, .failed, .cancelled:
+            let next = calculateNextPreviewPlacement()
+            UIView.animate(
+                withDuration: 0.25,
+                delay: 0,
+                options: .curveEaseInOut
+            ) { [self] in
+                videoView.frame.origin = previewOrigin(for: next)
+            }
+        default: break
+        }
+    }
+
+    func calculateNextPreviewPlacement() -> PreviewPlacement {
+        let onTopSide = videoView.frame.midY < view.bounds.height / 2
+        let onLeadingSide = videoView.frame.midX < view.bounds.width / 2
+        if onTopSide {
+            return onLeadingSide ? .topLeading : .topTrailing
+        } else {
+            return onLeadingSide ? .bottomLeading : .bottomTrailing
+        }
+    }
+
+    func previewOrigin(for placement: PreviewPlacement) -> CGPoint {
+        let offset = Appearence.previewOffset
+        let size = videoViewSize
+        let x, y: CGFloat
+        switch placement {
+        case .topLeading:
+            x = offset
+            y = view.safeAreaInsets.top + offset
+        case .topTrailing:
+            x = view.bounds.width - size.width - offset
+            y = view.safeAreaInsets.top + offset
+        case .bottomTrailing:
+            x = view.bounds.width - size.width - offset
+            y = view.bounds.height - size.height - offset - view.safeAreaInsets.bottom
+        case .bottomLeading:
+            x = offset
+            y = view.bounds.height - size.height - offset - view.safeAreaInsets.bottom
+        }
+        return CGPoint(x: x, y: y)
     }
 }

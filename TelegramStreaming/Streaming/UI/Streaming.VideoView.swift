@@ -42,7 +42,9 @@ extension Streaming {
         }()
 
         private lazy var closeWidthConstraint = closeButton.widthAnchor.constraint(equalToConstant: 30)
-        private lazy var closeTrailingConstraint = closeButton.trailingAnchor.constraint(equalTo: trailingAnchor)
+        private lazy var closeTrailingConstraint = closeButton.trailingAnchor.constraint(
+            equalTo: safeAreaLayoutGuide.trailingAnchor
+        )
 
         private let blurView = UIVisualEffectView(effect: UIBlurEffect(style: .dark))
         private let imageView = UIImageView {
@@ -81,10 +83,7 @@ extension Streaming.VideoView {
             let x = (bounds.width - width) / 2
             let y = (bounds.height - height) / 2
 
-            CATransaction.begin()
-            CATransaction.setDisableActions(true)
             video.frame = CGRect(x: x, y: y, width: width, height: height)
-            CATransaction.commit()
         }
     }
 }

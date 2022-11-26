@@ -8,7 +8,7 @@
 import UIKit
 
 class ViewController: UIViewController {
-    
+
     override func viewDidLoad() {
         super.viewDidLoad()
         let button = UIButton()
@@ -19,7 +19,7 @@ class ViewController: UIViewController {
         
         NSLayoutConstraint.activate([
             button.centerXAnchor.constraint(equalTo: view.centerXAnchor),
-            button.centerYAnchor.constraint(equalTo: view.centerYAnchor)
+            button.centerYAnchor.constraint(equalTo: view.topAnchor, constant: 100)
         ])
         view.backgroundColor = .darkGray
     }
@@ -30,8 +30,7 @@ class ViewController: UIViewController {
     }
     
     @objc func openPageSheet() {
-        let viewController = Streaming.Assembly.make()
-        present(viewController, animated: true)
+        Streaming.present()
     }
 }
 
