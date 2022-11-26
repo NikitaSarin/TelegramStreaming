@@ -21,23 +21,18 @@ class ViewController: UIViewController {
             button.centerXAnchor.constraint(equalTo: view.centerXAnchor),
             button.centerYAnchor.constraint(equalTo: view.centerYAnchor)
         ])
+        view.backgroundColor = .darkGray
+    }
 
+    override func viewDidAppear(_ animated: Bool) {
+        super.viewDidAppear(animated)
         openPageSheet()
     }
     
     @objc func openPageSheet() {
-        let viewModel = Streaming.ViewModel()
-        let viewAssembly = Streaming.ViewAssembly()
-        let viewController = Streaming.ViewController(viewModel: viewModel,
-                                                      viewAssembly: viewAssembly)
-
-        viewModel.view = viewController
-
-        viewController.modalPresentationStyle = .formSheet
-        viewController.modalTransitionStyle = .coverVertical
+        let viewController = Streaming.Assembly.make()
         present(viewController, animated: true)
     }
-    
 }
 
 extension UIImage {

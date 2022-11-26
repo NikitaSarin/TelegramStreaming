@@ -34,6 +34,12 @@ final class NumberView: UIView {
         }
     }
 
+    private let stackView = UIStackView {
+        $0.axis = .horizontal
+        $0.distribution = .equalCentering
+        $0.spacing = 0
+    }
+
     private lazy var label = UILabel {
         $0.textColor = .black
         $0.font = font
@@ -69,7 +75,7 @@ final class NumberView: UIView {
 extension NumberView {
 
     override var intrinsicContentSize: CGSize {
-        label.intrinsicContentSize
+        stackView.bounds.size
     }
 
     override func layoutSubviews() {
@@ -83,26 +89,33 @@ private extension NumberView {
     func setup() {
         layer.addSublayer(gradient)
 
-        label.translatesAutoresizingMaskIntoConstraints = false
+        stackView.translatesAutoresizingMaskIntoConstraints = false
+        stackView.addArrangedSubview(label)
+
+        updateMask()
     }
 
     func move(from: Int?, to: Int?) {
         if let value = to {
             let text = formatter.string(from: value as NSNumber)
-            UIView.transition(
-                with: label,
-                duration: 0.25,
-                options: .transitionCrossDissolve,
-                animations: { [self] in
-                    label.text = text
-                },
-                completion: nil
-            )
+            UIView.animate(withDuration: 0.7) { [self] in
+                label.alpha = 0
+                label.text = text
+                label.alpha = 1
+            }
         } else {
             label.text = nil
         }
-        label.frame = CGRect(origin: .zero, size: label.intrinsicContentSize)
-        mask = label
+        updateMask()
+    }
+
+    func updateMask() {
+        stackView.setNeedsLayout()
+        stackView.layoutIfNeeded()
+        stackView.frame = CGRect(origin: .zero, size: stackView.bounds.size)
+
+        invalidateIntrinsicContentSize()
+        mask = stackView
     }
 }
 

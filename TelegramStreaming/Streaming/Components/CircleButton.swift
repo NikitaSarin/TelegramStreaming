@@ -28,6 +28,7 @@ final class CircleButton: UIControl {
 
     private let imageInset: CGFloat
     private let action: VoidClosure?
+    private let feedback = UIImpactFeedbackGenerator(style: .medium)
 
     init(
         title: String,
@@ -100,6 +101,7 @@ private extension CircleButton {
     }
 
     @objc func didTouchDown() {
+        feedback.impactOccurred()
         UIView.animate(withDuration: 0.2, delay: 0, options: .curveEaseInOut) { [self] in
             transform = .identity.scaledBy(x: 0.9, y: 0.9)
         }

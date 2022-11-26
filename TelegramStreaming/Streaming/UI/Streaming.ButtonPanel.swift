@@ -43,24 +43,30 @@ extension Streaming {
 
 private extension Streaming.ButtonPanel {
 
+    enum Appereance {
+        static let shareColor = UIColor(red: 49 / 255,
+                                        green: 42 / 255,
+                                        blue: 78 / 255,
+                                        alpha: 1)
+        static let expandColor = UIColor(red: 66 / 255,
+                                        green: 41 / 255,
+                                        blue: 72 / 255,
+                                        alpha: 1)
+        static let leaveColor = UIColor(red: 91 / 255,
+                                        green: 47 / 255,
+                                        blue: 57 / 255,
+                                        alpha: 1)
+    }
+
     func setup() {
         axis = .horizontal
         distribution = .equalCentering
         spacing = 60
 
-        let redColor = UIColor(red: 80 / 255,
-                               green: 41 / 255,
-                               blue: 50 / 255,
-                               alpha: 1)
-        let blueColor = UIColor(red: 42 / 255,
-                                green: 44 / 255,
-                                blue: 91 / 255,
-                                alpha: 1)
-
         addArrangedSubviews(
             CircleButton(
                 title: "share",
-                background: blueColor,
+                background: Appereance.shareColor,
                 imageName: "Call/CallShareButton",
                 imageInset: 0
             ) { [weak self] in
@@ -68,7 +74,7 @@ private extension Streaming.ButtonPanel {
             },
             CircleButton(
                 title: "expand",
-                background: blueColor,
+                background: Appereance.expandColor,
                 imageName: "Call/Expand",
                 imageInset: 18
             ) { [weak self] in
@@ -76,7 +82,7 @@ private extension Streaming.ButtonPanel {
             },
             CircleButton(
                 title: "leave",
-                background: redColor,
+                background: Appereance.leaveColor,
                 imageName: "Call/CallCancelButton",
                 imageInset: 18
             ) { [weak self] in

@@ -9,8 +9,6 @@ import UIKit
 
 protocol StreamingNavigationBarDelegate: AnyObject {
 
-    var shouldShowPipButton: Bool { get }
-
     func pipButtonTapped()
 
     func moreButtonTapped()
@@ -20,7 +18,7 @@ extension Streaming {
 
     final class NavigationBar: UIView {
 
-        private lazy var moreButton = UIButton {
+        private(set) lazy var moreButton = UIButton {
             $0.layer.cornerRadius = Appearence.buttonEdge / 2
             $0.backgroundColor = Appearence.buttonBackground
             let image = UIImage(bundleImageName: "PeerInfo/ButtonMore")?
@@ -28,11 +26,12 @@ extension Streaming {
             $0.setImage(image, for: .normal)
             $0.tintColor = .white
             $0.isHidden = true
+            $0.addTarget(self, action: #selector(moreButtonTapped), for: .touchUpInside)
         }
 
-        private let title: Title
+        let title = Title()
 
-        private lazy var pipButton = UIButton {
+        private(set) lazy var pipButton = UIButton {
             $0.layer.cornerRadius = Appearence.buttonEdge / 2
             $0.backgroundColor = Appearence.buttonBackground
             let image = UIImage(bundleImageName: "Media Gallery/PictureInPictureButton")?
@@ -40,16 +39,12 @@ extension Streaming {
             $0.setImage(image, for: .normal)
             $0.tintColor = .white
             $0.imageEdgeInsets = UIEdgeInsets(top: 2, left: 2, bottom: 2, right: 2)
-            $0.isHidden = delegate?.shouldShowPipButton != true
+            $0.addTarget(self, action: #selector(pipButtonTapped), for: .touchUpInside)
         }
 
         private weak var delegate: StreamingNavigationBarDelegate?
 
-        init(
-            title: String,
-            delegate: StreamingNavigationBarDelegate
-        ) {
-            self.title = Title(text: title)
+        init(delegate: StreamingNavigationBarDelegate) {
             self.delegate = delegate
             super.init(frame: .zero)
 
@@ -57,17 +52,6 @@ extension Streaming {
         }
 
         required init(coder: NSCoder) { fatalError("init(coder:) has not been implemented") }
-    }
-}
-
-extension Streaming.NavigationBar {
-
-    func set(live: Bool) {
-        title.set(live: live)
-    }
-
-    func setMoreButton(visible: Bool) {
-        moreButton.isHidden = !visible
     }
 }
 
@@ -105,6 +89,17 @@ private extension Streaming.NavigationBar {
     }
 }
 
+private extension Streaming.NavigationBar {
+
+    @objc func moreButtonTapped() {
+        delegate?.moreButtonTapped()
+    }
+
+    @objc func pipButtonTapped() {
+        delegate?.pipButtonTapped()
+    }
+}
+
 extension Streaming.NavigationBar {
 
     final class Title: UIView {
@@ -128,10 +123,8 @@ extension Streaming.NavigationBar {
 
         private var isLive = false
 
-        init(text: String) {
-            super.init(frame: .zero)
-
-            titleLabel.text = text
+        override init(frame: CGRect) {
+            super.init(frame: frame)
             setup()
         }
 
@@ -140,6 +133,10 @@ extension Streaming.NavigationBar {
 }
 
 extension Streaming.NavigationBar.Title {
+
+    func set(text: String) {
+        titleLabel.text = text
+    }
 
     func set(live: Bool) {
         guard
@@ -152,7 +149,7 @@ extension Streaming.NavigationBar.Title {
         if live {
             liveLabel.layer.removeAllAnimations()
             liveLabelContainer.layer.removeAllAnimations()
-            
+
             let transform = CATransform3DScale(CATransform3DIdentity, 1.14, 1.14, 1)
             let animation = CABasicAnimation(keyPath: "transform")
             animation.duration = 0.14
@@ -160,7 +157,7 @@ extension Streaming.NavigationBar.Title {
             animation.toValue = NSValue(caTransform3D: transform)
             animation.autoreverses = true
             animation.timingFunction = CAMediaTimingFunction(name: .easeInEaseOut)
-            
+
             liveLabel.layer.add(animation, forKey: "transform")
             liveLabelContainer.layer.add(animation, forKey: "transform")
         }

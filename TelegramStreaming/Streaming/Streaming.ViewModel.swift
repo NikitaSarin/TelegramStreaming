@@ -7,12 +7,6 @@
 
 import UIKit
 
-protocol StreamingViewModel: StreamingButtonPanelDelegate, StreamingNavigationBarDelegate {
-
-    var title: String { get }
-
-    func start()
-}
 
 extension Streaming {
 
@@ -25,9 +19,9 @@ extension Streaming {
 
 extension Streaming.ViewModel: StreamingViewModel {
 
-    var title: String { "Telesport" }
-
     func start() {
+        view?.setMoreButton(visible: true)
+        view?.set(title: "Telesport")
         timer = Timer.scheduledTimer(
             timeInterval: 5,
             target: self,
@@ -44,16 +38,12 @@ extension Streaming.ViewModel: StreamingViewModel {
         }
     }
 
-    var shouldShowPipButton: Bool {
-        true
-    }
-
     func pipButtonTapped() {
-        //
+        view?.mode = .miniPreview
     }
 
     func moreButtonTapped() {
-        //
+
     }
 
     func shareButtonTapped() {
@@ -61,18 +51,22 @@ extension Streaming.ViewModel: StreamingViewModel {
     }
 
     func expandButtonTapped() {
-        //
+        view?.mode = .fullScreen
     }
 
     func leaveButtonTapped() {
-        //
+        view?.dismiss(animated: true)
+    }
+
+    func closeButtonTapped() {
+        view?.mode = .pageSheet
     }
 }
 
 private extension Streaming.ViewModel {
 
     @objc func updateWatchers() {
-        let count = Int.random(in: (84000..<85000))
+        let count = Int.random(in: (1000..<20000))
         view?.set(watchersCount: count)
         view?.set(live: count % 2 == 0)
     }

@@ -6,21 +6,19 @@
 //
 
 import UIKit
-
-protocol StreamingViewAssembling {
-
-    func makeVideoView() -> UIView?
-}
+import AVFoundation
 
 extension Streaming {
 
-    final class ViewAssembly {
-
-    }
+    final class Provider { }
 }
 
-extension Streaming.ViewAssembly: StreamingViewAssembling {
-    func makeVideoView() -> UIView? {
+extension Streaming.Provider : StreamingProvider {
+    var displayLayer: AVSampleBufferDisplayLayer? {
+        nil
+    }
+
+    var videoView: UIView? {
         UIImageView {
             $0.image = UIImage(named: "football")
             $0.contentMode = .scaleAspectFill

@@ -7,13 +7,23 @@
 
 import UIKit
 
-enum Streaming {
+protocol StreamingVideoViewDelegate: AnyObject {
+
+    func closeButtonTapped()
+}
+
+extension Streaming {
 
     final class VideoView: UIView {
 
-        var hasVideo: Bool { videoContent != nil }
-
         private var videoContent: UIView?
+
+        private(set) lazy var closeButton = UIButton {
+            $0.setImage(UIImage(bundleImageName: "Call/CallCancelButton"), for: .normal)
+            $0.alpha = 0
+            $0.imageEdgeInsets = UIEdgeInsets(top: 10, left: 10, bottom: 10, right: 10)
+            $0.addTarget(self, action: #selector(closeButtonTapped), for: .touchUpInside)
+        }
 
         private let gradientLayer: CAGradientLayer = {
             let layer = CAGradientLayer()
@@ -31,14 +41,26 @@ enum Streaming {
             return layer
         }()
 
+        private lazy var closeWidthConstraint = closeButton.widthAnchor.constraint(equalToConstant: 30)
+        private lazy var closeTrailingConstraint = closeButton.trailingAnchor.constraint(equalTo: trailingAnchor)
+
         private let blurView = UIVisualEffectView(effect: UIBlurEffect(style: .dark))
         private let imageView = UIImageView {
             $0.alpha = 0
             $0.contentMode = .scaleAspectFill
         }
 
-        override init(frame: CGRect) {
-            super.init(frame: frame)
+        private let provider: StreamingProvider
+        private weak var delegate: StreamingVideoViewDelegate?
+
+        init(
+            provider: StreamingProvider,
+            delegate: StreamingVideoViewDelegate
+        ) {
+            self.provider = provider
+            self.delegate = delegate
+            super.init(frame: .zero)
+
             setup()
         }
 
@@ -52,10 +74,30 @@ extension Streaming.VideoView {
         super.layoutSubviews()
 
         gradientLayer.frame = blurView.bounds
+
+        if let video = videoContent {
+            let width = bounds.width
+            let height = width / (16 / 9)
+            let x = (bounds.width - width) / 2
+            let y = (bounds.height - height) / 2
+
+            CATransaction.begin()
+            CATransaction.setDisableActions(true)
+            video.frame = CGRect(x: x, y: y, width: width, height: height)
+            CATransaction.commit()
+        }
     }
 }
 
 extension Streaming.VideoView {
+
+    func setCloseButtonLarge(_ isLarge: Bool) {
+        let offset: CGFloat = isLarge ? 14 : 10
+        closeButton.imageEdgeInsets = UIEdgeInsets(top: offset, left: offset, bottom: offset, right: offset)
+
+        closeTrailingConstraint.constant = isLarge ? -8 : -2
+        closeWidthConstraint.constant = isLarge ? 44 : 30
+    }
 
     func setBlur(visible: Bool) {
         UIView.animate(withDuration: 0.2) { [self] in
@@ -72,27 +114,17 @@ extension Streaming.VideoView {
         }
     }
 
-    func set(video: UIView) {
-        if let old = videoContent {
-            UIView.animate(
-                withDuration: 0.2,
-                delay: 0,
-                animations: {
-                    old.alpha = 0
-                }, completion: { _ in
-                    old.removeFromSuperview()
-                }
-            )
-        }
+    func loadVideoIfNeeded() {
+        guard
+            videoContent == nil,
+            let video = provider.videoView
+        else { return }
+        videoContent = video
         video.translatesAutoresizingMaskIntoConstraints = false
         video.alpha = 0
         insertSubview(video, at: 0)
-        NSLayoutConstraint.activate([
-            video.leadingAnchor.constraint(equalTo: leadingAnchor),
-            video.centerXAnchor.constraint(equalTo: centerXAnchor),
-            video.topAnchor.constraint(equalTo: topAnchor),
-            video.centerYAnchor.constraint(equalTo: centerYAnchor)
-        ])
+        setNeedsLayout()
+
         UIView.animate(withDuration: 0.2) { [self] in
             imageView.alpha = 0
             video.alpha = 1
@@ -105,7 +137,6 @@ private extension Streaming.VideoView {
     func setup() {
         backgroundColor = .black
         clipsToBounds = true
-        layer.cornerRadius = 10
 
         func add(_ subview: UIView) {
             subview.translatesAutoresizingMaskIntoConstraints = false
@@ -120,6 +151,16 @@ private extension Streaming.VideoView {
         add(imageView)
         blurView.layer.insertSublayer(gradientLayer, at: 0)
         add(blurView)
+
+        closeButton.translatesAutoresizingMaskIntoConstraints = false
+        addSubview(closeButton)
+
+        NSLayoutConstraint.activate([
+            closeButton.topAnchor.constraint(equalTo: safeAreaLayoutGuide.topAnchor),
+            closeTrailingConstraint,
+            closeWidthConstraint,
+            closeButton.heightAnchor.constraint(equalTo: closeButton.widthAnchor),
+        ])
 
         DispatchQueue.main.asyncAfter(deadline: .now() + 1) { [self] in
             setupAnimation()
@@ -139,5 +180,9 @@ private extension Streaming.VideoView {
         animation.timingFunction = CAMediaTimingFunction(name: .easeIn)
         animation.repeatCount = .infinity
         gradientLayer.add(animation, forKey: "blink")
+    }
+
+    @objc func closeButtonTapped() {
+        delegate?.closeButtonTapped()
     }
 }
