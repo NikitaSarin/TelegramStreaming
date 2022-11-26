@@ -14,14 +14,19 @@ extension Streaming {
 }
 
 extension Streaming.Provider : StreamingProvider {
+
+    var aspectRatio: CGFloat { 9 / 16 }
+
     var displayLayer: AVSampleBufferDisplayLayer? {
         nil
     }
 
-    var videoView: UIView? {
-        UIImageView {
-            $0.image = UIImage(named: "football")
-            $0.contentMode = .scaleAspectFill
-        }
+    func provideVideo(completion: (UIView?) -> Void) {
+        completion(
+            UIImageView {
+                $0.image = UIImage(named: "football")
+                $0.contentMode = .scaleAspectFill
+            }
+        )
     }
 }

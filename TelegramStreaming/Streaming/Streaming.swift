@@ -39,6 +39,10 @@ protocol StreamingViewModel: StreamingButtonPanelDelegate,
 }
 
 protocol StreamingProvider {
+
+    var aspectRatio: CGFloat { get }
+
     var displayLayer: AVSampleBufferDisplayLayer? { get }
-    var videoView: UIView? { get }
+
+    func provideVideo(completion: (UIView?) -> Void)
 }

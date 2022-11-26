@@ -78,8 +78,14 @@ extension Streaming.VideoView {
         gradientLayer.frame = blurView.bounds
 
         if let video = videoContent {
-            let width = bounds.width
-            let height = width / (16 / 9)
+            let height, width: CGFloat
+            if isLandscape {
+                width = bounds.width
+                height = width / provider.aspectRatio
+            } else {
+                height = bounds.height
+                width = height * provider.aspectRatio
+            }
             let x = (bounds.width - width) / 2
             let y = (bounds.height - height) / 2
 
@@ -89,6 +95,10 @@ extension Streaming.VideoView {
 }
 
 extension Streaming.VideoView {
+
+    var isLandscape: Bool {
+        provider.aspectRatio > 1
+    }
 
     func setCloseButtonLarge(_ isLarge: Bool) {
         let offset: CGFloat = isLarge ? 14 : 10
@@ -115,18 +125,11 @@ extension Streaming.VideoView {
 
     func loadVideoIfNeeded() {
         guard
-            videoContent == nil,
-            let video = provider.videoView
+            videoContent == nil
         else { return }
-        videoContent = video
-        video.translatesAutoresizingMaskIntoConstraints = false
-        video.alpha = 0
-        insertSubview(video, at: 0)
-        setNeedsLayout()
-
-        UIView.animate(withDuration: 0.2) { [self] in
-            imageView.alpha = 0
-            video.alpha = 1
+        provider.provideVideo { [weak self] video in
+            guard let video = video else { return }
+            self?.set(video: video)
         }
     }
 }
@@ -179,6 +182,21 @@ private extension Streaming.VideoView {
         animation.timingFunction = CAMediaTimingFunction(name: .easeIn)
         animation.repeatCount = .infinity
         gradientLayer.add(animation, forKey: "blink")
+    }
+
+    func set(video: UIView) {
+        videoContent = video
+
+        video.clipsToBounds = true
+        video.translatesAutoresizingMaskIntoConstraints = false
+        video.alpha = 0
+        insertSubview(video, at: 0)
+        setNeedsLayout()
+
+        UIView.animate(withDuration: 0.2) { [self] in
+            imageView.alpha = 0
+            video.alpha = 1
+        }
     }
 
     @objc func closeButtonTapped() {

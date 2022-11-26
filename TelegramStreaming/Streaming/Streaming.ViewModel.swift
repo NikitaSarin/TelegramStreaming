@@ -66,7 +66,7 @@ extension Streaming.ViewModel: StreamingViewModel {
 private extension Streaming.ViewModel {
 
     @objc func updateWatchers() {
-        let count = Int.random(in: (1000..<20000))
+        let count = Int.random(in: (1..<1000000))
         view?.set(watchersCount: count)
         view?.set(live: count % 2 == 0)
     }

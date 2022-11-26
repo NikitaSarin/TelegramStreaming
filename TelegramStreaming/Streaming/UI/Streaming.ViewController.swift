@@ -26,6 +26,9 @@ extension Streaming {
             case bottomTrailing
         }
 
+        var onAppear: VoidClosure?
+        var onDisappear: VoidClosure?
+
         private let containerView = UIView {
             $0.layer.cornerRadius = Appearence.cornerRadius
             $0.backgroundColor = UIColor(red: 28 / 255,
@@ -37,7 +40,7 @@ extension Streaming {
 
         private lazy var navigationBar = NavigationBar(delegate: viewModel)
         private let videoView: Streaming.VideoView
-        private let numberView = NumberView()
+        private let numberView = GradientNumberView()
         private let wathingLabel = UILabel {
             $0.text = "watching"
             $0.font = .systemRoundedFont(ofSize: 16, weight: .bold)
@@ -69,7 +72,7 @@ extension Streaming {
 
         var mode: Mode = .pageSheet {
             didSet {
-                updateLayout()
+                updateLayout(from: oldValue)
             }
         }
 
@@ -90,11 +93,7 @@ extension Streaming {
 extension Streaming.ViewController {
 
     override var supportedInterfaceOrientations: UIInterfaceOrientationMask {
-        mode == .pageSheet ? .portrait : .all
-    }
-
-    override var shouldAutorotate: Bool {
-        mode != .pageSheet
+        .portrait
     }
 
     override func viewDidLoad() {
@@ -102,6 +101,16 @@ extension Streaming.ViewController {
         setup()
 
         viewModel.start()
+    }
+
+    override func viewDidAppear(_ animated: Bool) {
+        super.viewDidAppear(animated)
+        onAppear?()
+    }
+
+    override func viewDidDisappear(_ animated: Bool) {
+        super.viewDidDisappear(animated)
+        onDisappear?()
     }
 
     override func viewDidLayoutSubviews() {
@@ -223,7 +232,7 @@ private extension Streaming.ViewController {
         setupContent()
 
         videoView.setBlur(visible: true)
-        updateLayout()
+        updateLayout(from: mode)
     }
 
     func setupContainer() {
@@ -278,7 +287,7 @@ private extension Streaming.ViewController {
         ])
     }
 
-    func updateLayout() {
+    func updateLayout(from: Mode) {
         let radius: CGFloat
         switch mode {
         case .pageSheet:
@@ -295,9 +304,9 @@ private extension Streaming.ViewController {
         videoView.isUserInteractionEnabled = !isPageSheet
 
         UIView.animate(
-            withDuration: 0.6,
+            withDuration: transitionDuration(from: from, to: mode),
             delay: 0,
-            usingSpringWithDamping: 0.72,
+            usingSpringWithDamping: 0.73,
             initialSpringVelocity: 0.05
         ) { [self] in
             if mode == .miniPreview {
@@ -310,8 +319,19 @@ private extension Streaming.ViewController {
             videoView.setCloseButtonLarge(mode == .fullScreen)
             videoView.closeButton.alpha = isPageSheet ? 0 : 1
             videoView.layer.cornerRadius = radius
+            let needRotate = mode == .fullScreen && videoView.isLandscape
+            videoView.transform = needRotate ? .identity.rotated(by: .pi / 2) : .identity
             view.setNeedsLayout()
             view.layoutIfNeeded()
+        }
+    }
+
+    func transitionDuration(from: Mode, to: Mode) -> Double {
+        switch (from, to) {
+        case (.fullScreen, .pageSheet):
+            return 0.85
+        default:
+            return 0.6
         }
     }
 }

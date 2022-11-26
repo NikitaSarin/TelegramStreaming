@@ -7,50 +7,7 @@
 
 import UIKit
 
-extension UIFont {
-    static func systemRoundedFont(ofSize size: CGFloat, weight: UIFont.Weight) -> UIFont {
-        let systemFont = UIFont.systemFont(ofSize: size, weight: weight)
-        guard
-            #available(iOS 13.0, *),
-            let descriptor = systemFont.fontDescriptor.withDesign(.rounded)
-        else { return systemFont }
-        return UIFont(descriptor: descriptor, size: size)
-    }
-}
-
-final class NumberView: UIView {
-
-    var font: UIFont = .systemRoundedFont(ofSize: 44, weight: .semibold) {
-        didSet {
-            label.font = font
-        }
-    }
-
-    var value: Int? {
-        didSet {
-            if oldValue != value {
-                move(from: oldValue, to: value)
-            }
-        }
-    }
-
-    private let stackView = UIStackView {
-        $0.axis = .horizontal
-        $0.distribution = .equalCentering
-        $0.spacing = 0
-    }
-
-    private lazy var label = UILabel {
-        $0.textColor = .black
-        $0.font = font
-    }
-
-    private let formatter: NumberFormatter = {
-        let formatter = NumberFormatter()
-        formatter.numberStyle = .decimal
-        formatter.groupingSeparator = ","
-        return formatter
-    }()
+final class GradientNumberView: UIView {
 
     private var gradient: CAGradientLayer = {
         let layer = CAGradientLayer()
@@ -64,94 +21,216 @@ final class NumberView: UIView {
         return layer
     }()
 
+
+    var value: Int? {
+        get { sizeNumberView.value }
+        set {
+            sizeNumberView.value = newValue
+            maskNumberView.value = newValue
+        }
+    }
+
+    private let sizeNumberView = NumberView()
+    private let maskNumberView = NumberView()
+
+    override init(frame: CGRect) {
+        super.init(frame: frame)
+
+        sizeNumberView.alpha = 0
+        sizeNumberView.translatesAutoresizingMaskIntoConstraints = false
+        addSubview(sizeNumberView)
+
+        NSLayoutConstraint.activate([
+            sizeNumberView.topAnchor.constraint(equalTo: topAnchor),
+            sizeNumberView.leadingAnchor.constraint(equalTo: leadingAnchor),
+            sizeNumberView.centerXAnchor.constraint(equalTo: centerXAnchor),
+            sizeNumberView.centerYAnchor.constraint(equalTo: centerYAnchor),
+        ])
+
+        layer.addSublayer(gradient)
+
+        mask = maskNumberView
+    }
+
+    required init?(coder: NSCoder) { fatalError("init(coder:) has not been implemented") }
+
+    override func layoutSubviews() {
+        super.layoutSubviews()
+
+        maskNumberView.frame = bounds
+        gradient.frame = bounds
+    }
+}
+
+final class NumberView: UIStackView {
+
+    var font: UIFont = .systemRoundedFont(ofSize: 44, weight: .semibold) {
+        didSet {
+            labels.forEach { $0.font = font }
+        }
+    }
+
+    var value: Int? {
+        didSet {
+            if oldValue != value {
+                move(from: oldValue, to: value)
+            }
+        }
+    }
+
+    private var labels = [AnimatedLabel]()
+
+    private let formatter: NumberFormatter = {
+        let formatter = NumberFormatter()
+        formatter.numberStyle = .decimal
+        formatter.groupingSeparator = ","
+        return formatter
+    }()
+
     override init(frame: CGRect) {
         super.init(frame: frame)
         setup()
     }
 
-    required init?(coder: NSCoder) { fatalError("init(coder:) has not been implemented") }
-}
-
-extension NumberView {
-
-    override var intrinsicContentSize: CGSize {
-        stackView.bounds.size
-    }
-
-    override func layoutSubviews() {
-        super.layoutSubviews()
-        gradient.frame = bounds
-    }
+    required init(coder: NSCoder) { fatalError("init(coder:) has not been implemented") }
 }
 
 private extension NumberView {
 
     func setup() {
-        layer.addSublayer(gradient)
-
-        stackView.translatesAutoresizingMaskIntoConstraints = false
-        stackView.addArrangedSubview(label)
-
-        updateMask()
+        axis = .horizontal
+        distribution = .equalSpacing
+        alignment = .bottom
+        spacing = 0
     }
 
     func move(from: Int?, to: Int?) {
         if let value = to {
-            let text = formatter.string(from: value as NSNumber)
-            UIView.animate(withDuration: 0.7) { [self] in
-                label.alpha = 0
-                label.text = text
-                label.alpha = 1
+            let text = formatter.string(from: value as NSNumber) ?? ""
+            let diff = text.count - labels.count
+            if diff > 0 {
+                (0..<diff).forEach { _ in
+                    let label = AnimatedLabel {
+                        $0.font = font
+                        $0.layoutMargins = .zero
+                    }
+                    addArrangedSubview(label)
+                    labels.append(label)
+                }
+            } else if diff < 0 {
+                labels[labels.count-abs(diff)..<labels.count].forEach { $0.removeFromSuperview() }
+                labels = labels.dropLast(abs(diff))
+            }
+            var delay = 0.0
+            for (label, symbol) in zip(labels, text).reversed() {
+                if label.text != String(symbol) {
+                    label.set(text: String(symbol), delay: delay)
+                    delay += 0.1
+                }
             }
         } else {
-            label.text = nil
+            labels.forEach { $0.removeFromSuperview() }
+            labels.removeAll()
         }
-        updateMask()
-    }
 
-    func updateMask() {
-        stackView.setNeedsLayout()
-        stackView.layoutIfNeeded()
-        stackView.frame = CGRect(origin: .zero, size: stackView.bounds.size)
-
-        invalidateIntrinsicContentSize()
-        mask = stackView
+        UIView.animate(withDuration: 0.2) { [self] in
+            setNeedsLayout()
+            layoutIfNeeded()
+        }
     }
 }
 
-extension UILabel {
+private final class AnimatedLabel: UILabel {
 
-    func set(text: String, animated: Bool) {
-        if animated {
-            UIView.animate(
-                withDuration: 0.2,
-                delay: 0,
-                animations: { [self] in
-                    alpha = 0
-                },
-                completion: { [self] _ in
-                    self.text = text
-                    let from = CATransform3DScale(CATransform3DIdentity, 0.2, 0.2, 1)
-                    let to = CATransform3DIdentity
+    let duration: Double = 0.4
 
-                    layer.transform = from
-                    let transformAanimation = CABasicAnimation(keyPath: "transform")
-                    transformAanimation.duration = 0.5
-                    transformAanimation.fromValue = NSValue(caTransform3D: from)
-                    transformAanimation.toValue = NSValue(caTransform3D: to)
-                    transformAanimation.fillMode = .forwards
-                    transformAanimation.timingFunction = CAMediaTimingFunction(name: .easeIn)
-                    layer.transform = to
-                    layer.add(transformAanimation, forKey: "transform")
-
-                    UIView.animate(withDuration: 0.1) { [self] in
-                        alpha = 1
-                    }
-                }
-            )
-
-        } else {
-            self.text = text
+    func set(text: String, delay: CGFloat = 0) {
+        if delay > 0 {
+            DispatchQueue.main.asyncAfter(deadline: .now() + delay) { [self] in
+                set(text: text)
+            }
+            return
         }
+
+        let inLabel = UILabel()
+        inLabel.text = text
+        inLabel.font = font
+        inLabel.textColor = textColor
+        inLabel.alpha = 0
+
+        inLabel.translatesAutoresizingMaskIntoConstraints = false
+        inLabel.frame = bounds
+        addSubview(inLabel)
+
+        let outLabel = UILabel()
+        outLabel.text = self.text
+        outLabel.font = font
+        outLabel.textColor = textColor
+
+        outLabel.translatesAutoresizingMaskIntoConstraints = false
+        outLabel.frame = bounds
+        addSubview(outLabel)
+
+        let inTransform: CATransform3D = .identity
+            .translate(0, bounds.height / 2, 0)
+            .scale(0.001, 0.001, 1)
+        let inAnimation = CABasicAnimation(keyPath: "transform")
+        inAnimation.duration = duration
+        inAnimation.fromValue = NSValue(caTransform3D: inTransform)
+        inAnimation.toValue = NSValue(caTransform3D: .identity)
+        inAnimation.timingFunction = CAMediaTimingFunction(name: .easeInEaseOut)
+        inAnimation.isRemovedOnCompletion = false
+        inLabel.layer.add(inAnimation, forKey: nil)
+
+        let outTransform: CATransform3D = .identity
+            .translate(0, -bounds.height / 2, 0)
+            .scale(0.001, 0.001, 1)
+        let outAnimation = CABasicAnimation(keyPath: "transform")
+        outAnimation.duration = duration
+        outAnimation.fromValue = NSValue(caTransform3D: .identity)
+        outAnimation.toValue = NSValue(caTransform3D: outTransform)
+        outAnimation.timingFunction = CAMediaTimingFunction(name: .easeInEaseOut)
+        outAnimation.isRemovedOnCompletion = false
+        outLabel.layer.add(outAnimation, forKey: nil)
+
+        UIView.animate(
+            withDuration: duration,
+            delay: 0,
+            animations: { [self] in
+                self.text = text
+                self.textColor = .clear
+                inLabel.alpha = 1
+                outLabel.alpha = 0
+            },
+            completion: { [self] _ in
+                inLabel.removeFromSuperview()
+                outLabel.removeFromSuperview()
+                textColor = outLabel.textColor
+            }
+        )
+    }
+}
+
+extension CATransform3D {
+
+    static var identity: CATransform3D { CATransform3DIdentity }
+
+    func scale(_ sx: CGFloat, _ sy: CGFloat, _ sz: CGFloat) -> CATransform3D {
+        CATransform3DScale(self, sx, sy, sz)
+    }
+
+    func translate(_ tx: CGFloat, _ ty: CGFloat, _ tz: CGFloat) -> CATransform3D {
+        CATransform3DTranslate(self, tx, ty, tz)
+    }
+}
+
+extension UIFont {
+    static func systemRoundedFont(ofSize size: CGFloat, weight: UIFont.Weight) -> UIFont {
+        let systemFont = UIFont.systemFont(ofSize: size, weight: weight)
+        guard
+            #available(iOS 13.0, *),
+            let descriptor = systemFont.fontDescriptor.withDesign(.rounded)
+        else { return systemFont }
+        return UIFont(descriptor: descriptor, size: size)
     }
 }
