@@ -45,6 +45,9 @@ extension Streaming {
         private lazy var closeTrailingConstraint = closeButton.trailingAnchor.constraint(
             equalTo: safeAreaLayoutGuide.trailingAnchor
         )
+        private lazy var closeTopConstraint = closeButton.topAnchor.constraint(
+            equalTo: topAnchor, constant: 50
+        )
 
         private let blurView = UIVisualEffectView(effect: UIBlurEffect(style: .dark))
         private let imageView = UIImageView {
@@ -108,7 +111,14 @@ extension Streaming.VideoView {
         let offset: CGFloat = isLarge ? 14 : 10
         closeButton.imageEdgeInsets = UIEdgeInsets(top: offset, left: offset, bottom: offset, right: offset)
 
-        closeTrailingConstraint.constant = isLarge ? -8 : -2
+        if isLarge {
+            closeTopConstraint.constant = isLandscape ? 8 : 50
+            closeTrailingConstraint.constant = isLandscape ? -50 : -8
+        } else {
+            closeTopConstraint.constant = 0
+            closeTrailingConstraint.constant = -2
+        }
+
         closeWidthConstraint.constant = isLarge ? 44 : 30
     }
 
@@ -165,7 +175,7 @@ private extension Streaming.VideoView {
         addSubview(closeButton)
 
         NSLayoutConstraint.activate([
-            closeButton.topAnchor.constraint(equalTo: safeAreaLayoutGuide.topAnchor),
+            closeTopConstraint,
             closeTrailingConstraint,
             closeWidthConstraint,
             closeButton.heightAnchor.constraint(equalTo: closeButton.widthAnchor),
