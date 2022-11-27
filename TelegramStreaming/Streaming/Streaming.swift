@@ -35,6 +35,9 @@ public enum Streaming {
 protocol StreamingViewModel: StreamingButtonPanelDelegate,
                              StreamingNavigationBarDelegate,
                              StreamingVideoViewDelegate {
+
+    var title: String { get }
+
     func start()
 }
 

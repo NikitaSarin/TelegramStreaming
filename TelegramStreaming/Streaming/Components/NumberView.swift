@@ -21,15 +21,6 @@ final class GradientNumberView: UIView {
         return layer
     }()
 
-
-    var value: Int? {
-        get { sizeNumberView.value }
-        set {
-            sizeNumberView.value = newValue
-            maskNumberView.value = newValue
-        }
-    }
-
     private let sizeNumberView = NumberView()
     private let maskNumberView = NumberView()
 
@@ -60,6 +51,11 @@ final class GradientNumberView: UIView {
         maskNumberView.frame = bounds
         gradient.frame = bounds
     }
+
+    func set(value: Int, animated: Bool) {
+        sizeNumberView.set(value: value, animated: false)
+        maskNumberView.set(value: value, animated: true)
+    }
 }
 
 final class NumberView: UIStackView {
@@ -70,13 +66,7 @@ final class NumberView: UIStackView {
         }
     }
 
-    var value: Int? {
-        didSet {
-            if oldValue != value {
-                move(from: oldValue, to: value)
-            }
-        }
-    }
+    private var value: Int?
 
     private var labels = [AnimatedLabel]()
 
@@ -104,36 +94,40 @@ private extension NumberView {
         spacing = 0
     }
 
-    func move(from: Int?, to: Int?) {
-        if let value = to {
-            let text = formatter.string(from: value as NSNumber) ?? ""
-            let diff = text.count - labels.count
-            if diff > 0 {
-                (0..<diff).forEach { _ in
-                    let label = AnimatedLabel {
-                        $0.font = font
-                        $0.layoutMargins = .zero
-                    }
-                    addArrangedSubview(label)
-                    labels.append(label)
+    func set(value: Int, animated: Bool) {
+        guard self.value != value else { return }
+        let text = formatter.string(from: value as NSNumber) ?? ""
+        let diff = text.count - labels.count
+        if diff > 0 {
+            (0..<diff).forEach { _ in
+                let label = AnimatedLabel {
+                    $0.textColor = .black
+                    $0.font = font
+                    $0.layoutMargins = .zero
                 }
-            } else if diff < 0 {
-                labels[labels.count-abs(diff)..<labels.count].forEach { $0.removeFromSuperview() }
-                labels = labels.dropLast(abs(diff))
+                labels.append(label)
+                addArrangedSubview(label)
             }
-            var delay = 0.0
-            for (label, symbol) in zip(labels, text).reversed() {
-                if label.text != String(symbol) {
-                    label.set(text: String(symbol), delay: delay)
-                    delay += 0.07
-                }
+        } else if diff < 0 {
+            labels[labels.count-abs(diff)..<labels.count].forEach { $0.removeFromSuperview() }
+            labels = labels.dropLast(abs(diff))
+        }
+        var delay = 0.0
+        for (label, symbol) in zip(labels, text).reversed() {
+            if label.text != String(symbol) {
+                label.set(text: String(symbol), delay: delay, animated: animated)
+                delay += 0.07
             }
-        } else {
-            labels.forEach { $0.removeFromSuperview() }
-            labels.removeAll()
         }
 
-        UIView.animate(withDuration: 0.2) { [self] in
+        invalidateIntrinsicContentSize()
+
+        if animated {
+            UIView.animate(withDuration: 0.2) { [self] in
+                setNeedsLayout()
+                layoutIfNeeded()
+            }
+        } else {
             setNeedsLayout()
             layoutIfNeeded()
         }
@@ -144,7 +138,13 @@ private final class AnimatedLabel: UILabel {
 
     let duration: Double = 0.4
 
-    func set(text: String, delay: CGFloat = 0) {
+    func set(text: String, delay: CGFloat = 0, animated: Bool = true) {
+        guard
+            animated
+        else {
+            self.text = text
+            return
+        }
         if delay > 0 {
             DispatchQueue.main.asyncAfter(deadline: .now() + delay) { [self] in
                 set(text: text)
@@ -193,19 +193,20 @@ private final class AnimatedLabel: UILabel {
         outAnimation.isRemovedOnCompletion = false
         outLabel.layer.add(outAnimation, forKey: nil)
 
+        self.text = text
+        self.textColor = .clear
+
         UIView.animate(
             withDuration: duration,
             delay: 0,
-            animations: { [self] in
-                self.text = text
-                self.textColor = .clear
+            animations: {
                 inLabel.alpha = 1
                 outLabel.alpha = 0
             },
             completion: { [self] _ in
                 inLabel.removeFromSuperview()
                 outLabel.removeFromSuperview()
-                textColor = outLabel.textColor
+                textColor = .white
             }
         )
     }

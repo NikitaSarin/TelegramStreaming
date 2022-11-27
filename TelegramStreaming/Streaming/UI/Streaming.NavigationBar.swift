@@ -21,7 +21,7 @@ extension Streaming {
         private(set) lazy var moreButton = UIButton {
             $0.layer.cornerRadius = Appearence.buttonEdge / 2
             $0.backgroundColor = Appearence.buttonBackground
-            let image = UIImage(bundleImageName: "PeerInfo/ButtonMore")?
+            let image = UIImage(bundleImageName: "Peer Info/ButtonMore")?
                 .withRenderingMode(.alwaysTemplate)
             $0.setImage(image, for: .normal)
             $0.tintColor = .white

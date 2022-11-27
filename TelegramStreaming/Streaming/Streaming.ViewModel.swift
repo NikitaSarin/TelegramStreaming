@@ -19,9 +19,12 @@ extension Streaming {
 
 extension Streaming.ViewModel: StreamingViewModel {
 
+    var title: String { "Telesport" }
+
     func start() {
-        view?.setMoreButton(visible: true)
-        view?.set(title: "Telesport")
+        view?.moreButton.isHidden = false
+        view?.updateTitle()
+        view?.set(watchersCount: 31)
         timer = Timer.scheduledTimer(
             timeInterval: 5,
             target: self,
@@ -29,7 +32,6 @@ extension Streaming.ViewModel: StreamingViewModel {
             userInfo: nil,
             repeats: true
         )
-        view?.set(watchersCount: 84249)
         DispatchQueue.main.asyncAfter(deadline: .now() + 1) { [self] in
             view?.set(preview: UIImage(named: "football")!)
         }
@@ -66,7 +68,7 @@ extension Streaming.ViewModel: StreamingViewModel {
 private extension Streaming.ViewModel {
 
     @objc func updateWatchers() {
-        let count = Int.random(in: (1..<1000000))
+        let count = Int.random(in: (31..<35))
         view?.set(watchersCount: count)
         view?.set(live: count % 2 == 0)
     }

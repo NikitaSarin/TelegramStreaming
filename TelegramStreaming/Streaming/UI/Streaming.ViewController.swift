@@ -141,12 +141,12 @@ extension Streaming.ViewController {
 
 extension Streaming.ViewController {
 
-    func setMoreButton(visible: Bool) {
-        navigationBar.moreButton.isHidden = !visible
+    var moreButton: UIView {
+        navigationBar.moreButton
     }
 
-    func set(title: String) {
-        navigationBar.title.set(text: title)
+    func updateTitle() {
+        navigationBar.title.set(text: viewModel.title)
     }
 
     func set(live: Bool) {
@@ -162,7 +162,8 @@ extension Streaming.ViewController {
     }
 
     func set(watchersCount: Int) {
-        numberView.value = watchersCount
+        print("WATHCERS: \(watchersCount)")
+        numberView.set(value: watchersCount, animated: true)
     }
 }
 
