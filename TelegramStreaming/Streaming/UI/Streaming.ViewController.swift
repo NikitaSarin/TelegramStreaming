@@ -143,6 +143,27 @@ extension Streaming.ViewController {
 
 extension Streaming.ViewController {
 
+    var videoViewSize: CGSize {
+        switch mode {
+        case .pageSheet:
+            let width = UIScreen.main.bounds.width - videoViewOffset * 2
+            let height = width / (16 / 9)
+            return CGSize(width: width, height: height)
+        case .miniPreview:
+            let width, height: CGFloat
+            if videoView.isLandscape {
+                width = (view.bounds.width - videoViewOffset * 2) * 0.6
+                height = width / videoView.aspectRatio
+            } else {
+                height = (view.bounds.width - videoViewOffset * 2) * 0.6
+                width = height * videoView.aspectRatio
+            }
+            return CGSize(width: width, height: height)
+        case .fullScreen:
+            return view.bounds.size
+        }
+    }
+
     var moreButton: UIView {
         navigationBar.moreButton
     }
@@ -216,27 +237,6 @@ private extension Streaming.ViewController {
             return 8
         case .fullScreen:
             return 0
-        }
-    }
-
-    var videoViewSize: CGSize {
-        switch mode {
-        case .pageSheet:
-            let width = UIScreen.main.bounds.width - videoViewOffset * 2
-            let height = width / (16 / 9)
-            return CGSize(width: width, height: height)
-        case .miniPreview:
-            let width, height: CGFloat
-            if videoView.isLandscape {
-                width = (view.bounds.width - videoViewOffset * 2) * 0.6
-                height = width / videoView.aspectRatio
-            } else {
-                height = (view.bounds.width - videoViewOffset * 2) * 0.6
-                width = height * videoView.aspectRatio
-            }
-            return CGSize(width: width, height: height)
-        case .fullScreen:
-            return view.bounds.size
         }
     }
 

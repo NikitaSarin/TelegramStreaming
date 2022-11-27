@@ -202,8 +202,10 @@ private extension Streaming.VideoView {
 
         UIView.animate(withDuration: 0.2) { [self] in
             imageView.alpha = 0
-            blurView.alpha = 0
             video.alpha = 1
+        }
+        UIView.animate(withDuration: 0.3, delay: 0.1) { [self] in
+            blurView.alpha = 0
         }
     }
 
