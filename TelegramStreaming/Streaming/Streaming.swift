@@ -12,9 +12,9 @@ public enum Streaming {
 
     static var window: UIWindow?
 
-    static func present() {
+    static func present(ratio: CGFloat) {
         let viewModel = Streaming.ViewModel()
-        let provider = Streaming.Provider()
+        let provider = Streaming.Provider(aspectRatio: ratio)
         let viewController = Streaming.ViewController(viewModel: viewModel, provider: provider)
 
         viewModel.view = viewController

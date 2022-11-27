@@ -100,6 +100,10 @@ extension Streaming.VideoView {
         provider.aspectRatio > 1
     }
 
+    var aspectRatio: CGFloat {
+        provider.aspectRatio
+    }
+
     func setCloseButtonLarge(_ isLarge: Bool) {
         let offset: CGFloat = isLarge ? 14 : 10
         closeButton.imageEdgeInsets = UIEdgeInsets(top: offset, left: offset, bottom: offset, right: offset)

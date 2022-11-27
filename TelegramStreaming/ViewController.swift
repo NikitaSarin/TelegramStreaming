@@ -11,26 +11,42 @@ class ViewController: UIViewController {
 
     override func viewDidLoad() {
         super.viewDidLoad()
-        let button = UIButton()
-        button.translatesAutoresizingMaskIntoConstraints = false
-        button.setTitle("Open", for: .normal)
-        button.addTarget(self, action: #selector(openPageSheet), for: .touchUpInside)
-        view.addSubview(button)
-        
-        NSLayoutConstraint.activate([
-            button.centerXAnchor.constraint(equalTo: view.centerXAnchor),
-            button.centerYAnchor.constraint(equalTo: view.topAnchor, constant: 100)
-        ])
+
         view.backgroundColor = .darkGray
+
+        let portraitButton = UIButton()
+        portraitButton.setTitle("Portrait", for: .normal)
+        portraitButton.addTarget(self, action: #selector(openPortrait), for: .touchUpInside)
+
+        let landscapeButton = UIButton()
+        landscapeButton.setTitle("Landscape", for: .normal)
+        landscapeButton.addTarget(self, action: #selector(openLandscape), for: .touchUpInside)
+
+        [portraitButton, landscapeButton].forEach {
+            $0.translatesAutoresizingMaskIntoConstraints = false
+            view.addSubview($0)
+        }
+
+        NSLayoutConstraint.activate([
+            portraitButton.centerXAnchor.constraint(equalTo: view.centerXAnchor),
+            portraitButton.centerYAnchor.constraint(equalTo: view.topAnchor, constant: 100),
+
+            landscapeButton.centerXAnchor.constraint(equalTo: view.centerXAnchor),
+            landscapeButton.topAnchor.constraint(equalTo: portraitButton.bottomAnchor, constant: 10)
+        ])
     }
 
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
-        openPageSheet()
+        openLandscape()
     }
     
-    @objc func openPageSheet() {
-        Streaming.present()
+    @objc func openPortrait() {
+        Streaming.present(ratio: 9 / 16)
+    }
+
+    @objc func openLandscape() {
+        Streaming.present(ratio: 16 / 9)
     }
 }
 

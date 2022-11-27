@@ -118,17 +118,14 @@ extension Streaming.ViewController {
 
         switch mode {
         case .pageSheet:
-            let offset: CGFloat = 12
-            let width = view.bounds.width - offset * 2
-            let height = width / (16 / 9)
-            let x = offset
+            let x = videoViewOffset
             let y = navigationBar.convert(navigationBar.frame.origin, to: view).y + navigationBar.frame.height + 12
-            videoView.frame = CGRect(x: x, y: y, width: width, height: height)
+            videoView.frame.origin = CGPoint(x: x, y: y)
         case .fullScreen:
-            videoView.frame = view.bounds
-        case .miniPreview:
-            videoView.frame.size = videoViewSize
+            videoView.frame.origin = .zero
+        case .miniPreview: break
         }
+        videoView.frame.size = videoViewSize
     }
 
     override func dismiss(animated flag: Bool, completion: (() -> Void)? = nil) {
@@ -210,17 +207,32 @@ private extension Streaming.ViewController {
         static let contentHeight: CGFloat = 500
     }
 
+    var videoViewOffset: CGFloat {
+        switch mode {
+        case .pageSheet:
+            return 12
+        case .miniPreview:
+            return 8
+        case .fullScreen:
+            return 0
+        }
+    }
+
     var videoViewSize: CGSize {
         switch mode {
         case .pageSheet:
-            let offset: CGFloat = 12
-            let width = view.bounds.width - offset * 2
+            let width = view.bounds.width - videoViewOffset * 2
             let height = width / (16 / 9)
             return CGSize(width: width, height: height)
         case .miniPreview:
-            let offset: CGFloat = 8
-            let width = (view.bounds.width - offset * 2) * 0.6
-            let height = width / (16 / 9)
+            let width, height: CGFloat
+            if videoView.isLandscape {
+                width = (view.bounds.width - videoViewOffset * 2) * 0.6
+                height = width / videoView.aspectRatio
+            } else {
+                height = (view.bounds.width - videoViewOffset * 2) * 0.6
+                width = height * videoView.aspectRatio
+            }
             return CGSize(width: width, height: height)
         case .fullScreen:
             return view.bounds.size

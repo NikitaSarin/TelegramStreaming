@@ -10,23 +10,21 @@ import AVFoundation
 
 extension Streaming {
 
-    final class Provider { }
-}
+    struct Provider: StreamingProvider  {
 
-extension Streaming.Provider : StreamingProvider {
+        let aspectRatio: CGFloat
 
-    var aspectRatio: CGFloat { 9 / 16 }
+        var displayLayer: AVSampleBufferDisplayLayer? {
+            nil
+        }
 
-    var displayLayer: AVSampleBufferDisplayLayer? {
-        nil
-    }
-
-    func provideVideo(completion: (UIView?) -> Void) {
-        completion(
-            UIImageView {
-                $0.image = UIImage(named: "football")
-                $0.contentMode = .scaleAspectFill
-            }
-        )
+        func provideVideo(completion: (UIView?) -> Void) {
+            completion(
+                UIImageView {
+                    $0.image = UIImage(named: "football")
+                    $0.contentMode = .scaleAspectFill
+                }
+            )
+        }
     }
 }

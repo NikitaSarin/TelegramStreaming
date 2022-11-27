@@ -125,7 +125,7 @@ private extension NumberView {
             for (label, symbol) in zip(labels, text).reversed() {
                 if label.text != String(symbol) {
                     label.set(text: String(symbol), delay: delay)
-                    delay += 0.1
+                    delay += 0.07
                 }
             }
         } else {
