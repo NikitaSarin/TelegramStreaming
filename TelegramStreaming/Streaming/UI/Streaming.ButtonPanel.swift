@@ -81,8 +81,8 @@ private extension Streaming.ButtonPanel {
             CircleButton(
                 title: "expand",
                 background: Appereance.expandColor,
-                imageName: "Call/Expand",
-                imageInset: 18
+                imageName: "Call/CallExpandButton",
+                imageInset: 0
             ) { [weak self] in
                 self?.delegate?.expandButtonTapped()
             },
@@ -90,7 +90,7 @@ private extension Streaming.ButtonPanel {
                 title: "leave",
                 background: Appereance.leaveColor,
                 imageName: "Call/CallCancelButton",
-                imageInset: 18
+                imageInset: 17
             ) { [weak self] in
                 self?.delegate?.leaveButtonTapped()
             }

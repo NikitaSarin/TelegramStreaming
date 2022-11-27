@@ -13,6 +13,7 @@ final class CircleButton: UIControl {
 
     private let imageView = UIImageView {
         $0.contentMode = .scaleAspectFit
+        $0.tintColor = .white
     }
 
     private let imageContainer = UIView {
@@ -41,7 +42,7 @@ final class CircleButton: UIControl {
         self.action = action
         super.init(frame: .zero)
 
-        imageView.image = UIImage(bundleImageName: imageName)
+        imageView.image = UIImage(bundleImageName: imageName)?.withRenderingMode(.alwaysTemplate)
         imageContainer.backgroundColor = background
         label.text = title
 

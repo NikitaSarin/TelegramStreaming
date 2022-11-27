@@ -34,11 +34,10 @@ extension Streaming {
         private(set) lazy var pipButton = UIButton {
             $0.layer.cornerRadius = Appearence.buttonEdge / 2
             $0.backgroundColor = Appearence.buttonBackground
-            let image = UIImage(bundleImageName: "Media Gallery/PictureInPictureButton")?
+            let image = UIImage(bundleImageName: "Call/PictureInPictureButton")?
                 .withRenderingMode(.alwaysTemplate)
             $0.setImage(image, for: .normal)
             $0.tintColor = .white
-            $0.imageEdgeInsets = UIEdgeInsets(top: 2, left: 2, bottom: 2, right: 2)
             $0.addTarget(self, action: #selector(pipButtonTapped), for: .touchUpInside)
         }
 

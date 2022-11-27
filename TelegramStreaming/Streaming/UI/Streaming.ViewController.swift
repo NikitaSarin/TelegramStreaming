@@ -62,6 +62,8 @@ extension Streaming {
             return gesture
         }()
 
+        private lazy var contentHeight = videoViewSize.height + 294
+
         private lazy var containerBottomConstraint = containerView.bottomAnchor.constraint(
             equalTo: view.bottomAnchor,
             constant: Appearence.cornerRadius
@@ -119,7 +121,7 @@ extension Streaming.ViewController {
         switch mode {
         case .pageSheet:
             let x = videoViewOffset
-            let y = navigationBar.convert(navigationBar.frame.origin, to: view).y + navigationBar.frame.height + 12
+            let y = navigationBar.convert(navigationBar.frame.origin, to: view).y + navigationBar.frame.height + 16
             videoView.frame.origin = CGPoint(x: x, y: y)
         case .fullScreen:
             videoView.frame.origin = .zero
@@ -162,7 +164,6 @@ extension Streaming.ViewController {
     }
 
     func set(watchersCount: Int) {
-        print("WATHCERS: \(watchersCount)")
         numberView.set(value: watchersCount, animated: true)
     }
 }
@@ -205,7 +206,6 @@ private extension Streaming.ViewController {
     enum Appearence {
         static let previewOffset: CGFloat = 8
         static let cornerRadius: CGFloat = 12
-        static let contentHeight: CGFloat = 500
     }
 
     var videoViewOffset: CGFloat {
@@ -222,7 +222,7 @@ private extension Streaming.ViewController {
     var videoViewSize: CGSize {
         switch mode {
         case .pageSheet:
-            let width = view.bounds.width - videoViewOffset * 2
+            let width = UIScreen.main.bounds.width - videoViewOffset * 2
             let height = width / (16 / 9)
             return CGSize(width: width, height: height)
         case .miniPreview:
@@ -267,7 +267,7 @@ private extension Streaming.ViewController {
                                              constant: Appearence.cornerRadius),
             contentView.bottomAnchor.constraint(equalTo: containerView.safeAreaLayoutGuide.bottomAnchor,
                                                 constant: -Appearence.cornerRadius),
-            contentView.heightAnchor.constraint(equalToConstant: 500)
+            contentView.heightAnchor.constraint(equalToConstant: contentHeight)
         ])
     }
 
@@ -281,8 +281,9 @@ private extension Streaming.ViewController {
         }
 
         NSLayoutConstraint.activate([
-            navigationBar.topAnchor.constraint(equalTo: contentView.topAnchor),
-            navigationBar.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 14),
+            navigationBar.topAnchor.constraint(equalTo: contentView.topAnchor, constant: 4),
+            navigationBar.leadingAnchor.constraint(equalTo: contentView.leadingAnchor,
+                                                   constant: 14),
             navigationBar.centerXAnchor.constraint(equalTo: contentView.centerXAnchor),
 
             numberView.leadingAnchor.constraint(greaterThanOrEqualTo: contentView.leadingAnchor,
@@ -362,7 +363,7 @@ private extension Streaming.ViewController {
             containerBottomConstraint.constant = max(to, Appearence.cornerRadius)
             gesture.setTranslation(.zero, in: view)
         case .ended, .failed, .cancelled:
-            let needDismiss = containerBottomConstraint.constant > Appearence.contentHeight * 0.3
+            let needDismiss = containerBottomConstraint.constant > contentHeight * 0.3
             if needDismiss {
                 dismiss(animated: true)
             } else {
