@@ -131,6 +131,7 @@ extension Streaming.ViewController {
     }
 
     override func dismiss(animated flag: Bool, completion: (() -> Void)? = nil) {
+        viewModel.stop()
         super.dismiss(animated: flag) {
             Streaming.window?.resignKey()
             Streaming.window = nil
@@ -317,35 +318,27 @@ private extension Streaming.ViewController {
         containerBottomConstraint.isActive = isPageSheet
         videoView.isUserInteractionEnabled = !isPageSheet
 
+        let needRotate = mode == .fullScreen && videoView.isLandscape
+        let size = videoViewSize
+        videoView.set(size: videoViewSize, needRotate: needRotate, duration: 0.3)
         UIView.animate(
-            withDuration: transitionDuration(from: from, to: mode),
+            withDuration: 0.6,
             delay: 0,
-            usingSpringWithDamping: 0.73,
+            usingSpringWithDamping: 0.8,
             initialSpringVelocity: 0.05
         ) { [self] in
             if mode == .miniPreview {
-                let size = videoViewSize
                 let offset: CGFloat = 8
                 let x = view.bounds.width - size.width - offset
                 let y = view.safeAreaInsets.top + offset
-                videoView.frame = CGRect(origin: CGPoint(x: x, y: y), size: size)
+                videoView.frame.origin = CGPoint(x: x, y: y)
             }
             videoView.setCloseButtonLarge(mode == .fullScreen)
             videoView.closeButton.alpha = isPageSheet ? 0 : 1
-            videoView.layer.cornerRadius = radius
-            let needRotate = mode == .fullScreen && videoView.isLandscape
+            videoView.set(cornerRadius: radius)
             videoView.transform = needRotate ? .identity.rotated(by: .pi / 2) : .identity
             view.setNeedsLayout()
             view.layoutIfNeeded()
-        }
-    }
-
-    func transitionDuration(from: Mode, to: Mode) -> Double {
-        switch (from, to) {
-        case (.fullScreen, .pageSheet):
-            return 0.85
-        default:
-            return 0.6
         }
     }
 }

@@ -35,17 +35,18 @@ public enum Streaming {
 protocol StreamingViewModel: StreamingButtonPanelDelegate,
                              StreamingNavigationBarDelegate,
                              StreamingVideoViewDelegate {
-
     var title: String { get }
 
     func start()
+
+    func stop()
 }
 
 protocol StreamingProvider {
-
     var aspectRatio: CGFloat { get }
-
     var displayLayer: AVSampleBufferDisplayLayer? { get }
 
-    func provideVideo(completion: (UIView?) -> Void)
+    func provideVideoLayer(completion: @escaping (CALayer?) -> Void)
+
+    func snapshotLastFrame() -> UIImage?
 }

@@ -16,7 +16,7 @@ extension Streaming {
 
     final class VideoView: UIView {
 
-        private var videoContent: UIView?
+        private var videoContent: CALayer?
 
         private(set) lazy var closeButton = UIButton {
             $0.setImage(UIImage(bundleImageName: "Call/CallCancelButton"), for: .normal)
@@ -58,6 +58,12 @@ extension Streaming {
         private let provider: StreamingProvider
         private weak var delegate: StreamingVideoViewDelegate?
 
+        private let backgroundLayer: CALayer = {
+            let layer = CALayer()
+            layer.backgroundColor = UIColor.black.cgColor
+            return layer
+        }()
+
         init(
             provider: StreamingProvider,
             delegate: StreamingVideoViewDelegate
@@ -79,25 +85,27 @@ extension Streaming.VideoView {
         super.layoutSubviews()
 
         gradientLayer.frame = blurView.bounds
-
-        if let video = videoContent {
-            let height, width: CGFloat
-            if isLandscape {
-                width = bounds.width
-                height = width / provider.aspectRatio
-            } else {
-                height = bounds.height
-                width = height * provider.aspectRatio
-            }
-            let x = (bounds.width - width) / 2
-            let y = (bounds.height - height) / 2
-
-            video.frame = CGRect(x: x, y: y, width: width, height: height)
-        }
     }
 }
 
 extension Streaming.VideoView {
+
+    func set(cornerRadius: CGFloat) {
+        layer.cornerRadius = cornerRadius
+        backgroundLayer.cornerRadius = cornerRadius
+        videoContent?.cornerRadius = cornerRadius
+    }
+
+    func set(size: CGSize, needRotate: Bool, duration: CGFloat) {
+        let layerSize = needRotate ? CGSize(width: size.height, height: size.width) : size
+        let rect = calculateVideoFrame(in: layerSize)
+
+        CATransaction.begin()
+        CATransaction.setAnimationDuration(duration)
+        backgroundLayer.frame = CGRect(origin: .zero, size: layerSize)
+        videoContent?.frame = rect
+        CATransaction.commit()
+    }
 
     var isLandscape: Bool {
         provider.aspectRatio > 1
@@ -144,7 +152,7 @@ extension Streaming.VideoView {
         guard
             videoContent == nil
         else { return }
-        provider.provideVideo { [weak self] video in
+        provider.provideVideoLayer { [weak self] video in
             guard let video = video else { return }
             self?.set(video: video)
         }
@@ -154,7 +162,7 @@ extension Streaming.VideoView {
 private extension Streaming.VideoView {
 
     func setup() {
-        backgroundColor = .black
+        backgroundColor = .clear
         clipsToBounds = true
 
         func add(_ subview: UIView) {
@@ -167,6 +175,8 @@ private extension Streaming.VideoView {
                 subview.centerYAnchor.constraint(equalTo: centerYAnchor)
             ])
         }
+
+        layer.addSublayer(backgroundLayer)
         add(imageView)
         blurView.layer.insertSublayer(gradientLayer, at: 0)
         add(blurView)
@@ -201,23 +211,40 @@ private extension Streaming.VideoView {
         gradientLayer.add(animation, forKey: "blink")
     }
 
-    func set(video: UIView) {
+    func set(video: CALayer) {
         videoContent = video
 
-        video.clipsToBounds = true
-        video.translatesAutoresizingMaskIntoConstraints = false
-        video.alpha = 0
-        insertSubview(video, at: 0)
-        setNeedsLayout()
+        video.opacity = 0
+        video.cornerRadius = layer.cornerRadius
+        layer.insertSublayer(video, at: 1)
+        let rect = calculateVideoFrame(in: bounds.size)
+        video.frame = rect
 
         UIView.animate(withDuration: 0.2) { [self] in
             imageView.alpha = 0
-            video.alpha = 1
+            video.opacity = 1
         }
         UIView.animate(withDuration: 0.3, delay: 0.1) { [self] in
             blurView.alpha = 0
         }
     }
+
+    func calculateVideoFrame(in parentSize: CGSize) -> CGRect {
+        let height, width: CGFloat
+        if isLandscape {
+            width = parentSize.width
+            height = width / provider.aspectRatio
+        } else {
+            height = parentSize.height
+            width = height * provider.aspectRatio
+        }
+        let x = (parentSize.width - width) / 2
+        let y = (parentSize.height - height) / 2
+
+        let rect =  CGRect(x: x, y: y, width: width, height: height)
+        return rect
+    }
+
 
     @objc func closeButtonTapped() {
         delegate?.closeButtonTapped()

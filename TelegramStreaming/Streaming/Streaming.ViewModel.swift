@@ -26,7 +26,7 @@ extension Streaming.ViewModel: StreamingViewModel {
         view?.updateTitle()
         view?.set(watchersCount: 31)
         timer = Timer.scheduledTimer(
-            timeInterval: 5,
+            timeInterval: 2,
             target: self,
             selector: #selector(updateWatchers),
             userInfo: nil,
@@ -39,6 +39,8 @@ extension Streaming.ViewModel: StreamingViewModel {
             view?.set(live: true)
         }
     }
+
+    func stop() { }
 
     func pipButtonTapped() {
         view?.mode = .miniPreview
@@ -68,7 +70,7 @@ extension Streaming.ViewModel: StreamingViewModel {
 private extension Streaming.ViewModel {
 
     @objc func updateWatchers() {
-        let count = Int.random(in: (31..<35))
+        let count = Int.random(in: (84000..<85000))
         view?.set(watchersCount: count)
         view?.set(live: count % 2 == 0)
     }

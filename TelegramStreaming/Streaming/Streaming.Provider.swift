@@ -18,13 +18,14 @@ extension Streaming {
             nil
         }
 
-        func provideVideo(completion: (UIView?) -> Void) {
-            completion(
-                UIImageView {
-                    $0.image = UIImage(named: "football")
-                    $0.contentMode = .scaleAspectFill
-                }
-            )
+        func provideVideoLayer(completion: @escaping (CALayer?) -> Void) {
+            let layer = CALayer()
+            layer.contents = UIImage(named: "football")?.cgImage
+            completion(layer)
+        }
+
+        func snapshotLastFrame() -> UIImage? {
+            nil
         }
     }
 }
