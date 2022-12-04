@@ -24,6 +24,10 @@ extension Streaming {
             completion(layer)
         }
 
+        func provideLightningVideoLayer(completion: @escaping (CALayer?) -> Void) {
+            provideVideoLayer(completion: completion)
+        }
+
         func snapshotLastFrame() -> UIImage? {
             nil
         }

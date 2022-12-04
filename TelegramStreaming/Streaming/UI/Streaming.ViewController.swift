@@ -40,6 +40,7 @@ extension Streaming {
 
         private lazy var navigationBar = NavigationBar(delegate: viewModel)
         private let videoView: Streaming.VideoView
+        private let lightningView: Streaming.LightningView
         private let numberView = GradientNumberView()
         private let wathingLabel = UILabel {
             $0.text = "watching"
@@ -81,6 +82,7 @@ extension Streaming {
         init(viewModel: StreamingViewModel, provider: StreamingProvider) {
             self.viewModel = viewModel
             self.videoView = Streaming.VideoView(provider: provider, delegate: viewModel)
+            self.lightningView = Streaming.LightningView(provider: provider)
             super.init(nibName: nil, bundle: nil)
 
             modalPresentationStyle = .overCurrentContext
@@ -176,6 +178,7 @@ extension Streaming.ViewController {
     func set(live: Bool) {
         if live {
             videoView.loadVideoIfNeeded()
+            lightningView.loadVideoIfNeeded()
         }
         navigationBar.title.set(live: live)
         videoView.setBlur(visible: !live)
@@ -276,7 +279,7 @@ private extension Streaming.ViewController {
         videoView.addGestureRecognizer(previewPanGesture)
         containerView.addGestureRecognizer(pageSheetPanGesture)
 
-        [navigationBar, numberView, wathingLabel, panel].forEach {
+        [lightningView, navigationBar, numberView, wathingLabel, panel].forEach {
             $0.translatesAutoresizingMaskIntoConstraints = false
             contentView.addSubview($0)
         }
@@ -286,6 +289,12 @@ private extension Streaming.ViewController {
             navigationBar.leadingAnchor.constraint(equalTo: contentView.leadingAnchor,
                                                    constant: 14),
             navigationBar.centerXAnchor.constraint(equalTo: contentView.centerXAnchor),
+
+            lightningView.topAnchor.constraint(equalTo: navigationBar.topAnchor),
+            lightningView.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: -60),
+            lightningView.centerXAnchor.constraint(equalTo: contentView.centerXAnchor),
+            lightningView.widthAnchor.constraint(equalTo: lightningView.heightAnchor,
+                                                 multiplier: 16 / 9),
 
             numberView.leadingAnchor.constraint(greaterThanOrEqualTo: contentView.leadingAnchor,
                                                 constant: 12),

@@ -24,22 +24,7 @@ extension Streaming {
             $0.imageEdgeInsets = UIEdgeInsets(top: 10, left: 10, bottom: 10, right: 10)
             $0.addTarget(self, action: #selector(closeButtonTapped), for: .touchUpInside)
         }
-
-        private let gradientLayer: CAGradientLayer = {
-            let layer = CAGradientLayer()
-            let colors: [UIColor] = [
-                .white.withAlphaComponent(0),
-                .white.withAlphaComponent(0.7),
-                .white.withAlphaComponent(0)
-            ]
-            layer.backgroundColor = UIColor.clear.cgColor
-            layer.colors = colors.map { $0.cgColor }
-            layer.locations = [0, 0.5, 1]
-            layer.startPoint = CGPoint(x: 0, y: 0.5)
-            layer.endPoint = CGPoint(x: 1, y: 0.5)
-            layer.opacity = 0
-            return layer
-        }()
+        private let blinkLayer = BlinkLayer()
 
         private lazy var closeWidthConstraint = closeButton.widthAnchor.constraint(equalToConstant: 30)
         private lazy var closeTrailingConstraint = closeButton.trailingAnchor.constraint(
@@ -84,7 +69,7 @@ extension Streaming.VideoView {
     override func layoutSubviews() {
         super.layoutSubviews()
 
-        gradientLayer.frame = blurView.bounds
+        blinkLayer.frame = blurView.bounds
     }
 }
 
@@ -94,6 +79,7 @@ extension Streaming.VideoView {
         layer.cornerRadius = cornerRadius
         backgroundLayer.cornerRadius = cornerRadius
         videoContent?.cornerRadius = cornerRadius
+        blinkLayer.set(cornaerRadius: cornerRadius)
     }
 
     func set(size: CGSize, needRotate: Bool, duration: CGFloat) {
@@ -178,7 +164,7 @@ private extension Streaming.VideoView {
 
         layer.addSublayer(backgroundLayer)
         add(imageView)
-        blurView.layer.insertSublayer(gradientLayer, at: 0)
+        blurView.layer.addSublayer(blinkLayer)
         add(blurView)
 
         closeButton.translatesAutoresizingMaskIntoConstraints = false
@@ -192,23 +178,8 @@ private extension Streaming.VideoView {
         ])
 
         DispatchQueue.main.asyncAfter(deadline: .now() + 1) { [self] in
-            setupAnimation()
+            blinkLayer.setupAnimation()
         }
-    }
-
-    func setupAnimation() {
-        gradientLayer.opacity = 1
-        let width = UIScreen.main.bounds.width
-        let from = CATransform3DTranslate(CATransform3DIdentity, -width, 0, 0)
-        let to = CATransform3DTranslate(CATransform3DIdentity, width * 3, 0, 0)
-        let animation = CABasicAnimation(keyPath: "transform")
-        animation.duration = 1.2
-        animation.fromValue = NSValue(caTransform3D: from)
-        animation.toValue = NSValue(caTransform3D: to)
-        animation.fillMode = .forwards
-        animation.timingFunction = CAMediaTimingFunction(name: .easeIn)
-        animation.repeatCount = .infinity
-        gradientLayer.add(animation, forKey: "blink")
     }
 
     func set(video: CALayer) {
@@ -248,5 +219,76 @@ private extension Streaming.VideoView {
 
     @objc func closeButtonTapped() {
         delegate?.closeButtonTapped()
+    }
+}
+
+private final class BlinkLayer: CALayer {
+
+    private let gradientLayer: CAGradientLayer = {
+        let layer = CAGradientLayer()
+        let colors: [UIColor] = [
+            .white.withAlphaComponent(0),
+            .white.withAlphaComponent(0.7),
+            .white.withAlphaComponent(0)
+        ]
+        layer.backgroundColor = UIColor.clear.cgColor
+        layer.colors = colors.map { $0.cgColor }
+        layer.locations = [0, 0.5, 1]
+        layer.startPoint = CGPoint(x: 0, y: 0.5)
+        layer.endPoint = CGPoint(x: 1, y: 0.5)
+        layer.opacity = 0
+        return layer
+    }()
+
+    private let maskLayer: CAShapeLayer = {
+        let border = CAShapeLayer()
+        border.fillColor = UIColor(white: 0, alpha: 0.3).cgColor
+        border.strokeColor = UIColor(white: 0, alpha: 0.5).cgColor
+        border.lineWidth = 4
+        return border
+    }()
+
+    override init() {
+        super.init()
+        setup()
+    }
+
+    override init(layer: Any) {
+        super.init(layer: layer)
+        setup()
+    }
+
+    required init?(coder: NSCoder) { fatalError("init(coder:) has not been implemented") }
+
+    override func layoutSublayers() {
+        super.layoutSublayers()
+        gradientLayer.frame = bounds
+        maskLayer.frame = bounds
+        maskLayer.path = UIBezierPath(roundedRect: bounds, cornerRadius: cornerRadius).cgPath
+    }
+
+    func setup() {
+        mask = maskLayer
+        addSublayer(gradientLayer)
+    }
+
+    func set(cornaerRadius: CGFloat) {
+        cornerRadius = cornaerRadius
+        setNeedsLayout()
+    }
+
+    func setupAnimation() {
+        gradientLayer.opacity = 1
+        let width = UIScreen.main.bounds.width
+        let from = CATransform3DTranslate(CATransform3DIdentity, -width, 0, 0)
+        let to = CATransform3DTranslate(CATransform3DIdentity, width * 3, 0, 0)
+        let animation = CABasicAnimation(keyPath: "transform")
+        animation.duration = 1.2
+        animation.fromValue = NSValue(caTransform3D: from)
+        animation.toValue = NSValue(caTransform3D: to)
+        animation.fillMode = .forwards
+        animation.timingFunction = CAMediaTimingFunction(name: .easeIn)
+        animation.repeatCount = .infinity
+        gradientLayer.add(animation, forKey: "blink")
     }
 }

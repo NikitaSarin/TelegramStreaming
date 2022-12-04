@@ -12,6 +12,7 @@
 		B115382E2932291D0059126D /* Streaming.ViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = B115382A2932291D0059126D /* Streaming.ViewController.swift */; };
 		B115382F2932291D0059126D /* Streaming.ButtonPanel.swift in Sources */ = {isa = PBXBuildFile; fileRef = B115382B2932291D0059126D /* Streaming.ButtonPanel.swift */; };
 		B125C8AC29329161003C4D4A /* Streaming.Window.swift in Sources */ = {isa = PBXBuildFile; fileRef = B125C8AB29329161003C4D4A /* Streaming.Window.swift */; };
+		B13C62C5293CE16A00DA6A84 /* Streaming.LightningView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B13C62C4293CE16A00DA6A84 /* Streaming.LightningView.swift */; };
 		B1A6292F29320CBB007B85D9 /* Streaming.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1A6292E29320CBB007B85D9 /* Streaming.swift */; };
 		B1B71FC1292FE93F00BBA983 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1B71FC0292FE93F00BBA983 /* AppDelegate.swift */; };
 		B1B71FC5292FE93F00BBA983 /* ViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1B71FC4292FE93F00BBA983 /* ViewController.swift */; };
@@ -31,6 +32,7 @@
 		B115382A2932291D0059126D /* Streaming.ViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Streaming.ViewController.swift; sourceTree = "<group>"; };
 		B115382B2932291D0059126D /* Streaming.ButtonPanel.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Streaming.ButtonPanel.swift; sourceTree = "<group>"; };
 		B125C8AB29329161003C4D4A /* Streaming.Window.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Streaming.Window.swift; sourceTree = "<group>"; };
+		B13C62C4293CE16A00DA6A84 /* Streaming.LightningView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Streaming.LightningView.swift; sourceTree = "<group>"; };
 		B1A6292E29320CBB007B85D9 /* Streaming.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Streaming.swift; sourceTree = "<group>"; };
 		B1B71FBD292FE93F00BBA983 /* TelegramStreaming.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = TelegramStreaming.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		B1B71FC0292FE93F00BBA983 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
@@ -62,6 +64,7 @@
 			children = (
 				B125C8AB29329161003C4D4A /* Streaming.Window.swift */,
 				B115382A2932291D0059126D /* Streaming.ViewController.swift */,
+				B13C62C4293CE16A00DA6A84 /* Streaming.LightningView.swift */,
 				B11538282932291D0059126D /* Streaming.VideoView.swift */,
 				B11538292932291D0059126D /* Streaming.NavigationBar.swift */,
 				B115382B2932291D0059126D /* Streaming.ButtonPanel.swift */,
@@ -201,6 +204,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				B1B71FC5292FE93F00BBA983 /* ViewController.swift in Sources */,
+				B13C62C5293CE16A00DA6A84 /* Streaming.LightningView.swift in Sources */,
 				B1B71FC1292FE93F00BBA983 /* AppDelegate.swift in Sources */,
 				B1B71FE22930D3BA00BBA983 /* CircleButton.swift in Sources */,
 				B1B71FE42930DFC800BBA983 /* Streaming.ViewModel.swift in Sources */,
