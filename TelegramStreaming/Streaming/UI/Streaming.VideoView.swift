@@ -16,6 +16,7 @@ extension Streaming {
 
     final class VideoView: UIView {
 
+        private let lightningView: Streaming.LightningView
         private var videoContent: CALayer?
 
         private(set) lazy var closeButton = UIButton {
@@ -38,6 +39,7 @@ extension Streaming {
         private let imageView = UIImageView {
             $0.alpha = 0
             $0.contentMode = .scaleAspectFill
+            $0.clipsToBounds = true
         }
 
         private let provider: StreamingProvider
@@ -46,6 +48,7 @@ extension Streaming {
         private let backgroundLayer: CALayer = {
             let layer = CALayer()
             layer.backgroundColor = UIColor.black.cgColor
+            layer.masksToBounds = true
             return layer
         }()
 
@@ -55,6 +58,7 @@ extension Streaming {
         ) {
             self.provider = provider
             self.delegate = delegate
+            self.lightningView = Streaming.LightningView(provider: provider)
             super.init(frame: .zero)
 
             setup()
@@ -80,6 +84,8 @@ extension Streaming.VideoView {
         backgroundLayer.cornerRadius = cornerRadius
         videoContent?.cornerRadius = cornerRadius
         blinkLayer.set(cornaerRadius: cornerRadius)
+        imageView.layer.cornerRadius = cornerRadius
+        blurView.layer.cornerRadius = cornerRadius
     }
 
     func set(size: CGSize, needRotate: Bool, duration: CGFloat) {
@@ -135,6 +141,7 @@ extension Streaming.VideoView {
     }
 
     func loadVideoIfNeeded() {
+        lightningView.loadVideoIfNeeded()
         guard
             videoContent == nil
         else { return }
@@ -148,8 +155,7 @@ extension Streaming.VideoView {
 private extension Streaming.VideoView {
 
     func setup() {
-        backgroundColor = .clear
-        clipsToBounds = true
+        blurView.clipsToBounds = true
 
         func add(_ subview: UIView) {
             subview.translatesAutoresizingMaskIntoConstraints = false
@@ -162,6 +168,8 @@ private extension Streaming.VideoView {
             ])
         }
 
+        lightningView.translatesAutoresizingMaskIntoConstraints = false
+        addSubview(lightningView)
         layer.addSublayer(backgroundLayer)
         add(imageView)
         blurView.layer.addSublayer(blinkLayer)
@@ -175,6 +183,11 @@ private extension Streaming.VideoView {
             closeTrailingConstraint,
             closeWidthConstraint,
             closeButton.heightAnchor.constraint(equalTo: closeButton.widthAnchor),
+
+            lightningView.centerXAnchor.constraint(equalTo: centerXAnchor),
+            lightningView.centerYAnchor.constraint(equalTo: centerYAnchor),
+            lightningView.widthAnchor.constraint(equalTo: widthAnchor, multiplier: 1.3),
+            lightningView.heightAnchor.constraint(equalTo: heightAnchor, multiplier: 1.5)
         ])
 
         DispatchQueue.main.asyncAfter(deadline: .now() + 1) { [self] in
@@ -185,9 +198,10 @@ private extension Streaming.VideoView {
     func set(video: CALayer) {
         videoContent = video
 
+        video.masksToBounds = true
         video.opacity = 0
         video.cornerRadius = layer.cornerRadius
-        layer.insertSublayer(video, at: 1)
+        layer.insertSublayer(video, at: 2)
         let rect = calculateVideoFrame(in: bounds.size)
         video.frame = rect
 

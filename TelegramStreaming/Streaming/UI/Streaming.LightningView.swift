@@ -79,6 +79,7 @@ extension Streaming.LightningView {
 private extension Streaming.LightningView {
 
     func setup() {
+        clipsToBounds = true
         layer.mask = maskLayer
 
         blurView.translatesAutoresizingMaskIntoConstraints = false
@@ -95,28 +96,28 @@ private extension Streaming.LightningView {
 
 private final class MaskLayer: CALayer {
 
-    private let verticalGradiemt: CALayer = {
+    private let verticalGradient: CALayer = {
         let layer = CAGradientLayer()
         layer.colors = [
             UIColor.clear.cgColor,
-            UIColor(white: 0, alpha: 0.5).cgColor,
-            UIColor(white: 0, alpha: 0.5).cgColor,
+            UIColor(white: 0, alpha: 0.9).cgColor,
+            UIColor(white: 0, alpha: 0.9).cgColor,
             UIColor.clear.cgColor
         ]
-        layer.locations = [0, 0.35, 0.65, 1]
+        layer.locations = [0, 0.3, 0.7, 1]
         layer.startPoint = CGPoint(x: 0.5, y: 0)
         layer.endPoint = CGPoint(x: 0.5, y: 1)
         return layer
     }()
 
-    private let radialGradiemt: CALayer = {
+    private let radialGradient: CALayer = {
         let layer = CAGradientLayer()
         layer.type = .radial
         layer.colors = [
-            UIColor(white: 0, alpha: 0.4).cgColor,
+            UIColor(white: 0, alpha: 1).cgColor,
             UIColor.clear.cgColor
         ]
-        layer.locations = [0.5, 1]
+        layer.locations = [0.8, 1]
         layer.startPoint = CGPoint(x: 0.5, y: 0.5)
         layer.endPoint = CGPoint(x: 1, y: 1)
         return layer
@@ -136,12 +137,22 @@ private final class MaskLayer: CALayer {
 
     override func layoutSublayers() {
         super.layoutSublayers()
-        verticalGradiemt.frame = bounds
-        radialGradiemt.frame = bounds
+        let r_hOffset = bounds.width * 0.05
+        let r_vOffset = -bounds.height * 0.2
+        radialGradient.frame = CGRect(x: r_hOffset,
+                                      y: r_vOffset,
+                                      width: bounds.width - r_hOffset * 2,
+                                      height: bounds.height - r_vOffset * 2)
+
+        let v_vOffset = bounds.height * 0.05
+        verticalGradient.frame = CGRect(x: 0,
+                                        y: v_vOffset,
+                                        width: bounds.width,
+                                        height: bounds.height - v_vOffset * 2)
     }
 
     func setup() {
-        addSublayer(verticalGradiemt)
-        addSublayer(radialGradiemt)
+        addSublayer(verticalGradient)
+        verticalGradient.mask = radialGradient
     }
 }
