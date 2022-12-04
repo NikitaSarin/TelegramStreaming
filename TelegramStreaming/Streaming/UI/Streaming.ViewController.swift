@@ -175,13 +175,14 @@ extension Streaming.ViewController {
         navigationBar.title.set(text: viewModel.title)
     }
 
+    func loadVideoIfNeeded() {
+        videoView.loadVideoIfNeeded()
+        lightningView.loadVideoIfNeeded()
+    }
+
     func set(live: Bool) {
-        if live {
-            videoView.loadVideoIfNeeded()
-            lightningView.loadVideoIfNeeded()
-        }
-        navigationBar.title.set(live: live)
         videoView.setBlur(visible: !live)
+        navigationBar.title.set(live: live)
     }
 
     func set(preview: UIImage) {

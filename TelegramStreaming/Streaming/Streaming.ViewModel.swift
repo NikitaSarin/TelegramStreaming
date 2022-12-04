@@ -37,6 +37,7 @@ extension Streaming.ViewModel: StreamingViewModel {
         }
         DispatchQueue.main.asyncAfter(deadline: .now() + 2) { [self] in
             view?.set(live: true)
+            view?.loadVideoIfNeeded()
         }
     }
 

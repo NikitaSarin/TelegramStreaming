@@ -42,8 +42,18 @@ protocol StreamingViewModel: StreamingButtonPanelDelegate,
     func stop()
 }
 
+
+protocol StreamingProviderDelegate: AnyObject {
+
+    func videoDidBecomeActive()
+
+    func videoDidSuspended()
+}
+
 protocol StreamingProvider {
+
     var aspectRatio: CGFloat { get }
+
     var displayLayer: AVSampleBufferDisplayLayer? { get }
 
     func provideVideoLayer(completion: @escaping (CALayer?) -> Void)

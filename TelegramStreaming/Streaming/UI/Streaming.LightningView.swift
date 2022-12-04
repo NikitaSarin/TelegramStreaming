@@ -99,8 +99,8 @@ private final class MaskLayer: CALayer {
         let layer = CAGradientLayer()
         layer.colors = [
             UIColor.clear.cgColor,
-            UIColor(white: 0, alpha: 0.6).cgColor,
-            UIColor(white: 0, alpha: 0.6).cgColor,
+            UIColor(white: 0, alpha: 0.5).cgColor,
+            UIColor(white: 0, alpha: 0.5).cgColor,
             UIColor.clear.cgColor
         ]
         layer.locations = [0, 0.35, 0.65, 1]
