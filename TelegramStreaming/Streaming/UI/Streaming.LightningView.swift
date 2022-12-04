@@ -54,13 +54,24 @@ extension Streaming.LightningView {
                 let self = self,
                 let layer = $0
             else { return }
+            layer.opacity = 0
             self.videoContent = layer
             self.layer.insertSublayer(layer, at: 0)
             layer.frame = self.bounds
 
-            UIView.animate(withDuration: 0.4) {
-                self.alpha = 1
-            }
+            let animation = CABasicAnimation(keyPath: "opacity")
+            animation.fromValue = 0.0
+            animation.toValue = 1.0
+            animation.duration = 1.0
+            animation.timingFunction = CAMediaTimingFunction(name: .easeInEaseOut)
+            layer.add(animation, forKey: nil)
+            layer.opacity = 1
+        }
+    }
+
+    func setVideoVisible(_ visible: Bool) {
+        UIView.animate(withDuration: visible ? 1.0 : 0.3) { [self] in
+            alpha = visible ? 1 : 0
         }
     }
 }
@@ -68,7 +79,6 @@ extension Streaming.LightningView {
 private extension Streaming.LightningView {
 
     func setup() {
-        alpha = 0
         layer.mask = maskLayer
 
         blurView.translatesAutoresizingMaskIntoConstraints = false
@@ -103,7 +113,7 @@ private final class MaskLayer: CALayer {
         let layer = CAGradientLayer()
         layer.type = .radial
         layer.colors = [
-            UIColor(white: 0, alpha: 0.5).cgColor,
+            UIColor(white: 0, alpha: 0.4).cgColor,
             UIColor.clear.cgColor
         ]
         layer.locations = [0.5, 1]

@@ -291,7 +291,7 @@ private extension Streaming.ViewController {
             navigationBar.centerXAnchor.constraint(equalTo: contentView.centerXAnchor),
 
             lightningView.topAnchor.constraint(equalTo: navigationBar.topAnchor),
-            lightningView.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: -60),
+            lightningView.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: -70),
             lightningView.centerXAnchor.constraint(equalTo: contentView.centerXAnchor),
             lightningView.widthAnchor.constraint(equalTo: lightningView.heightAnchor,
                                                  multiplier: 16 / 9),
@@ -330,6 +330,7 @@ private extension Streaming.ViewController {
         let needRotate = mode == .fullScreen && videoView.isLandscape
         let size = videoViewSize
         videoView.set(size: videoViewSize, needRotate: needRotate, duration: 0.3)
+        lightningView.setVideoVisible(isPageSheet)
         UIView.animate(
             withDuration: 0.6,
             delay: 0,
