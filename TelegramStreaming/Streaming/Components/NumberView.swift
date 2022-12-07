@@ -92,10 +92,18 @@ private extension NumberView {
         distribution = .equalSpacing
         alignment = .bottom
         spacing = 0
+        alpha = 0
     }
 
     func set(value: Int, animated: Bool) {
         guard self.value != value else { return }
+        var animated = animated
+        if self.value == nil {
+            animated = false
+            UIView.animate(withDuration: 0.3, delay: 0.1) {
+                self.alpha = 1
+            }
+        }
         let text = formatter.string(from: value as NSNumber) ?? ""
         let diff = text.count - labels.count
         if diff > 0 {
@@ -131,6 +139,7 @@ private extension NumberView {
             setNeedsLayout()
             layoutIfNeeded()
         }
+        self.value = value
     }
 }
 

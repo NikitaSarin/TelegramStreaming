@@ -187,10 +187,10 @@ private extension Streaming.VideoView {
             lightningView.centerXAnchor.constraint(equalTo: centerXAnchor),
             lightningView.centerYAnchor.constraint(equalTo: centerYAnchor),
             lightningView.widthAnchor.constraint(equalTo: widthAnchor, multiplier: 1.3),
-            lightningView.heightAnchor.constraint(equalTo: heightAnchor, multiplier: 1.5)
+            lightningView.heightAnchor.constraint(equalTo: heightAnchor, multiplier: 1.3)
         ])
 
-        DispatchQueue.main.asyncAfter(deadline: .now() + 1) { [self] in
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) { [self] in
             blinkLayer.setupAnimation()
         }
     }

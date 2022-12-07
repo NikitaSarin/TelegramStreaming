@@ -10,18 +10,35 @@ import AVFoundation
 
 extension Streaming {
 
-    struct Provider: StreamingProvider  {
+    final class Provider: StreamingProvider  {
+
+        let colors: [UIColor] = [
+            .red, .green, .blue, .yellow, .white
+        ]
+
+        var value = 0
+        private var layer = CALayer()
+        private lazy var timer = Timer.scheduledTimer(
+            withTimeInterval: 1,
+            repeats: true
+        ) { [self] _ in
+            value = (value + 1) % colors.count
+            layer.backgroundColor = colors[value].cgColor
+        }
 
         let aspectRatio: CGFloat
+
+        init(aspectRatio: CGFloat) {
+            self.aspectRatio = aspectRatio
+        }
 
         var displayLayer: AVSampleBufferDisplayLayer? {
             nil
         }
 
         func provideVideoLayer(completion: @escaping (CALayer?) -> Void) {
-            let layer = CALayer()
-            layer.contents = UIImage(named: "football")?.cgImage
             completion(layer)
+            timer.fire()
         }
 
         func provideLightningVideoLayer(completion: @escaping (CALayer?) -> Void) {

@@ -94,9 +94,7 @@ extension Streaming {
 
 extension Streaming.ViewController {
 
-    override var supportedInterfaceOrientations: UIInterfaceOrientationMask {
-        .portrait
-    }
+    override var prefersStatusBarHidden: Bool { true }
 
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -145,23 +143,25 @@ extension Streaming.ViewController {
 extension Streaming.ViewController {
 
     var videoViewSize: CGSize {
+        let viewSize = CGSize(width: min(view.bounds.width, view.bounds.height),
+                              height: max(view.bounds.width, view.bounds.height))
         switch mode {
         case .pageSheet:
-            let width = UIScreen.main.bounds.width - videoViewOffset * 2
+            let width = viewSize.width - videoViewOffset * 2
             let height = width / (16 / 9)
             return CGSize(width: width, height: height)
         case .miniPreview:
             let width, height: CGFloat
             if videoView.isLandscape {
-                width = (view.bounds.width - videoViewOffset * 2) * 0.6
+                width = (viewSize.width - videoViewOffset * 2) * 0.6
                 height = width / videoView.aspectRatio
             } else {
-                height = (view.bounds.width - videoViewOffset * 2) * 0.6
+                height = (viewSize.width - videoViewOffset * 2) * 0.6
                 width = height * videoView.aspectRatio
             }
             return CGSize(width: width, height: height)
         case .fullScreen:
-            return view.bounds.size
+            return viewSize
         }
     }
 
