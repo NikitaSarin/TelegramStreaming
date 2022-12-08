@@ -94,7 +94,7 @@ extension Streaming {
 
 extension Streaming.ViewController {
 
-    override var prefersStatusBarHidden: Bool { true }
+    override var supportedInterfaceOrientations: UIInterfaceOrientationMask { .portrait }
 
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -106,6 +106,7 @@ extension Streaming.ViewController {
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
         onAppear?()
+        setNeedsStatusBarAppearanceUpdate()
     }
 
     override func viewDidDisappear(_ animated: Bool) {
@@ -322,6 +323,7 @@ private extension Streaming.ViewController {
         let needRotate = mode == .fullScreen && videoView.isLandscape
         let size = videoViewSize
         videoView.set(size: videoViewSize, needRotate: needRotate, duration: 0.3)
+        videoView.set(cornerRadius: radius, duration: 0.5)
         UIView.animate(
             withDuration: 0.6,
             delay: 0,
@@ -336,7 +338,6 @@ private extension Streaming.ViewController {
             }
             videoView.setCloseButtonLarge(mode == .fullScreen)
             videoView.closeButton.alpha = isPageSheet ? 0 : 1
-            videoView.set(cornerRadius: radius)
             videoView.transform = needRotate ? .identity.rotated(by: .pi / 2) : .identity
             view.setNeedsLayout()
             view.layoutIfNeeded()

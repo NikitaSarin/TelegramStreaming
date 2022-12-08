@@ -47,7 +47,7 @@ extension Streaming {
 
         private let backgroundLayer: CALayer = {
             let layer = CALayer()
-            layer.backgroundColor = UIColor.black.cgColor
+            layer.backgroundColor = Appearence.backgroundColor
             layer.masksToBounds = true
             return layer
         }()
@@ -79,13 +79,16 @@ extension Streaming.VideoView {
 
 extension Streaming.VideoView {
 
-    func set(cornerRadius: CGFloat) {
+    func set(cornerRadius: CGFloat, duration: CGFloat) {
+        CATransaction.begin()
+        CATransaction.setAnimationDuration(duration)
         layer.cornerRadius = cornerRadius
         backgroundLayer.cornerRadius = cornerRadius
         videoContent?.cornerRadius = cornerRadius
-        blinkLayer.set(cornaerRadius: cornerRadius)
+        blinkLayer.set(cornerRadius: cornerRadius)
         imageView.layer.cornerRadius = cornerRadius
         blurView.layer.cornerRadius = cornerRadius
+        CATransaction.commit()
     }
 
     func set(size: CGSize, needRotate: Bool, duration: CGFloat) {
@@ -93,10 +96,23 @@ extension Streaming.VideoView {
         let rect = calculateVideoFrame(in: layerSize)
 
         CATransaction.begin()
+        CATransaction.setDisableActions(true)
+        backgroundLayer.backgroundColor = UIColor.clear.cgColor
+        CATransaction.commit()
+
+        CATransaction.begin()
         CATransaction.setAnimationDuration(duration)
         backgroundLayer.frame = CGRect(origin: .zero, size: layerSize)
         videoContent?.frame = rect
+        if !isLandscape {
+            backgroundLayer.backgroundColor = Appearence.backgroundColor
+        }
         CATransaction.commit()
+        if isLandscape {
+            CATransaction.setCompletionBlock { [self] in
+                backgroundLayer.backgroundColor = Appearence.backgroundColor
+            }
+        }
     }
 
     var isLandscape: Bool {
@@ -153,6 +169,15 @@ extension Streaming.VideoView {
 }
 
 private extension Streaming.VideoView {
+
+    enum Appearence {
+        static let backgroundColor: CGColor = UIColor.black.cgColor
+    }
+
+    var screenRatio: CGFloat {
+        let bounds =  UIScreen.main.bounds
+        return bounds.width / bounds.height
+    }
 
     func setup() {
         blurView.clipsToBounds = true
@@ -216,7 +241,7 @@ private extension Streaming.VideoView {
 
     func calculateVideoFrame(in parentSize: CGSize) -> CGRect {
         let height, width: CGFloat
-        if isLandscape {
+        if isLandscape, aspectRatio > screenRatio {
             width = parentSize.width
             height = width / provider.aspectRatio
         } else {
@@ -229,7 +254,6 @@ private extension Streaming.VideoView {
         let rect =  CGRect(x: x, y: y, width: width, height: height)
         return rect
     }
-
 
     @objc func closeButtonTapped() {
         delegate?.closeButtonTapped()
@@ -286,8 +310,8 @@ private final class BlinkLayer: CALayer {
         addSublayer(gradientLayer)
     }
 
-    func set(cornaerRadius: CGFloat) {
-        cornerRadius = cornaerRadius
+    func set(cornerRadius: CGFloat) {
+        self.cornerRadius = cornerRadius
         setNeedsLayout()
     }
 
