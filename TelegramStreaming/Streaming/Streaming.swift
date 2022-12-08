@@ -58,7 +58,7 @@ protocol StreamingProvider {
 
     func provideVideoLayer(completion: @escaping (CALayer?) -> Void)
 
-    func provideLightningVideoLayer(completion: @escaping (CALayer?) -> Void)
+    func setOnReceiveFrame(handler: @escaping (CIImage) -> Void)
 
     func snapshotLastFrame() -> UIImage?
 }

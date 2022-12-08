@@ -11,16 +11,23 @@ extension Streaming {
 
     final class LightningView: UIView {
 
-        private let blurView: UIView = {
-            let view = UIVisualEffectView(effect: UIBlurEffect(style: .regular))
-            return view
-        }()
-
-        private let maskLayer = MaskLayer()
+        var radius: CGFloat = 45
 
         private let provider: StreamingProvider
+        private let context: CIContext = {
+            if let device = MTLCreateSystemDefaultDevice() {
+                return CIContext(mtlDevice: device)
+            } else {
+                return CIContext()
+            }
+        }()
 
-        private var videoContent: CALayer?
+        private let imageView: UIImageView = {
+            let view = UIImageView()
+            view.contentMode = .scaleToFill
+            view.alpha = 0
+            return view
+        }()
 
         init(provider: StreamingProvider) {
             self.provider = provider
@@ -35,38 +42,11 @@ extension Streaming {
 
 extension Streaming.LightningView {
 
-    override func layoutSubviews() {
-        super.layoutSubviews()
-        videoContent?.frame = bounds
-        maskLayer.frame = bounds
-    }
-}
-
-extension Streaming.LightningView {
-
     func loadVideoIfNeeded() {
-        guard
-            videoContent == nil
-        else { return }
-
-        provider.provideLightningVideoLayer { [weak self] in
-            guard
-                let self = self,
-                let layer = $0
-            else { return }
-            layer.opacity = 0
-            self.videoContent = layer
-            self.layer.insertSublayer(layer, at: 0)
-            layer.frame = self.bounds
-
-            let to: Float = 1.0
-            let animation = CABasicAnimation(keyPath: "opacity")
-            animation.fromValue = 0.0
-            animation.toValue = to
-            animation.duration = 1.0
-            animation.timingFunction = CAMediaTimingFunction(name: .easeInEaseOut)
-            layer.add(animation, forKey: nil)
-            layer.opacity = to
+        provider.setOnReceiveFrame { [weak self] frame in
+            DispatchQueue.global(qos: .userInitiated).async {
+                self?.process(frame: frame)
+            }
         }
     }
 
@@ -79,71 +59,45 @@ extension Streaming.LightningView {
 
 private extension Streaming.LightningView {
 
+    func process(frame: CIImage) {
+        let image = applyBlur(to: frame, radius: radius)
+        DispatchQueue.main.async {
+            self.imageView.image = image
+            if self.imageView.alpha == 0 {
+                UIView.animate(withDuration: 0.5) { [self] in
+                    self.imageView.alpha = 0.5
+                }
+            }
+        }
+    }
+
+    func applyBlur(to inputImage: CIImage, radius: CGFloat) -> UIImage? {
+        guard
+            let filter = CIFilter(name: "CIGaussianBlur")
+        else { return nil }
+
+        filter.setValue(inputImage, forKey: kCIInputImageKey)
+        filter.setValue(radius, forKey: "inputRadius")
+
+        guard
+            let output = filter.outputImage,
+            let final = context.createCGImage(output, from: output.extent)
+        else { return nil }
+
+        return UIImage(cgImage: final)
+    }
+
     func setup() {
         clipsToBounds = true
-        layer.mask = maskLayer
 
-        blurView.translatesAutoresizingMaskIntoConstraints = false
-        addSubview(blurView)
+        imageView.translatesAutoresizingMaskIntoConstraints = false
+        addSubview(imageView)
 
         NSLayoutConstraint.activate([
-            blurView.topAnchor.constraint(equalTo: topAnchor),
-            blurView.leadingAnchor.constraint(equalTo: leadingAnchor),
-            blurView.trailingAnchor.constraint(equalTo: trailingAnchor),
-            blurView.bottomAnchor.constraint(equalTo: bottomAnchor)
+            imageView.topAnchor.constraint(equalTo: topAnchor),
+            imageView.leadingAnchor.constraint(equalTo: leadingAnchor),
+            imageView.trailingAnchor.constraint(equalTo: trailingAnchor),
+            imageView.bottomAnchor.constraint(equalTo: bottomAnchor)
         ])
-    }
-}
-
-private final class MaskLayer: CALayer {
-
-    private let verticalGradient: CALayer = {
-        let layer = CAGradientLayer()
-        layer.colors = [
-            UIColor(white: 0, alpha: 0).cgColor,
-            UIColor(white: 0, alpha: 0.7).cgColor,
-            UIColor(white: 0, alpha: 0).cgColor
-        ]
-        layer.locations = [0, 0.5, 1]
-        layer.startPoint = CGPoint(x: 0.5, y: 0)
-        layer.endPoint = CGPoint(x: 0.5, y: 1)
-        return layer
-    }()
-
-    private let maskGradient: CALayer = {
-        let layer = CAGradientLayer()
-        layer.colors = [
-            UIColor(white: 0, alpha: 0).cgColor,
-            UIColor(white: 0, alpha: 1).cgColor,
-            UIColor(white: 0, alpha: 1).cgColor,
-            UIColor(white: 0, alpha: 0).cgColor
-        ]
-        layer.locations = [0, 0.2, 0.8, 1]
-        layer.startPoint = CGPoint(x: 0, y: 0.5)
-        layer.endPoint = CGPoint(x: 1, y: 0.5)
-        return layer
-    }()
-
-    override init() {
-        super.init()
-        setup()
-    }
-
-    override init(layer: Any) {
-        super.init(layer: layer)
-        setup()
-    }
-
-    required init?(coder: NSCoder) { fatalError("init(coder:) has not been implemented") }
-
-    override func layoutSublayers() {
-        super.layoutSublayers()
-        verticalGradient.frame = bounds
-        maskGradient.frame = bounds
-    }
-
-    func setup() {
-        addSublayer(verticalGradient)
-        verticalGradient.mask = maskGradient
     }
 }
