@@ -306,6 +306,12 @@ private final class BlinkLayer: CALayer {
     }
 
     func setup() {
+        NotificationCenter.default.addObserver(
+            self,
+            selector: #selector(applicationDidBecomeActive),
+            name: UIApplication.didBecomeActiveNotification,
+            object: nil
+        )
         mask = maskLayer
         addSublayer(gradientLayer)
     }
@@ -328,5 +334,9 @@ private final class BlinkLayer: CALayer {
         animation.timingFunction = CAMediaTimingFunction(name: .easeIn)
         animation.repeatCount = .infinity
         gradientLayer.add(animation, forKey: "blink")
+    }
+
+    @objc func applicationDidBecomeActive() {
+        setupAnimation()
     }
 }
