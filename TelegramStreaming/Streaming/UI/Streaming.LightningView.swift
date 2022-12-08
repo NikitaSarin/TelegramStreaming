@@ -20,7 +20,7 @@ extension Streaming {
                 }
             }
         }
-        var blurAlpha: CGFloat = 0.5 {
+        var blurAlpha: CGFloat = 0.45 {
             didSet {
                 imageView.alpha = blurAlpha
             }
