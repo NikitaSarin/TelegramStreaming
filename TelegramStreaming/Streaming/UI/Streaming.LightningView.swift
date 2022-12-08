@@ -11,7 +11,22 @@ extension Streaming {
 
     final class LightningView: UIView {
 
-        var radius: CGFloat = 45
+        var blurRadius: Int = 45 {
+            didSet {
+                if let image = lastImage, blurRadius != oldValue {
+                    DispatchQueue.global(qos: .userInteractive).async {
+                        self.process(frame: image)
+                    }
+                }
+            }
+        }
+        var blurAlpha: CGFloat = 0.5 {
+            didSet {
+                imageView.alpha = blurAlpha
+            }
+        }
+
+        private var lastImage: CIImage?
 
         private let provider: StreamingProvider
         private let context: CIContext = {
@@ -60,18 +75,19 @@ extension Streaming.LightningView {
 private extension Streaming.LightningView {
 
     func process(frame: CIImage) {
-        let image = applyBlur(to: frame, radius: radius)
+        lastImage = frame
+        let image = applyBlur(to: frame, radius: blurRadius)
         DispatchQueue.main.async {
             self.imageView.image = image
             if self.imageView.alpha == 0 {
                 UIView.animate(withDuration: 0.5) { [self] in
-                    self.imageView.alpha = 0.5
+                    self.imageView.alpha = blurAlpha
                 }
             }
         }
     }
 
-    func applyBlur(to inputImage: CIImage, radius: CGFloat) -> UIImage? {
+    func applyBlur(to inputImage: CIImage, radius: Int) -> UIImage? {
         guard
             let filter = CIFilter(name: "CIGaussianBlur")
         else { return nil }

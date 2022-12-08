@@ -72,6 +72,49 @@ extension Streaming {
             equalTo: view.bottomAnchor
         )
 
+        private lazy var alphaLabel = UILabel()
+        private lazy var radiusLabel = UILabel()
+        private lazy var debugView: UIView = {
+            let stackView = UIStackView()
+            stackView.axis = .vertical
+
+            stackView.addArrangedSubview(alphaLabel)
+            let alphaSlider = UISlider()
+            alphaSlider.minimumValue = 0
+            alphaSlider.maximumValue = 1
+            alphaSlider.value = Float(videoView.lightningView.blurAlpha)
+            alphaSlider.addTarget(self,
+                                   action: #selector(alphaValueDidChange),
+                                   for: .valueChanged)
+            alphaValueDidChange(slider: alphaSlider)
+            stackView.addArrangedSubview(alphaSlider)
+
+            stackView.addArrangedSubview(radiusLabel)
+            let radiusSlider = UISlider()
+            radiusSlider.minimumValue = 10
+            radiusSlider.maximumValue = 100
+            radiusSlider.value = Float(videoView.lightningView.blurRadius)
+            radiusSlider.addTarget(self,
+                                   action: #selector(radiusValueDidChange),
+                                   for: .valueChanged)
+            radiusSlider.isContinuous = false
+            radiusValueDidChange(slider: radiusSlider)
+            stackView.addArrangedSubview(radiusSlider)
+
+            return stackView
+        }()
+
+        @objc func alphaValueDidChange(slider: UISlider) {
+            videoView.lightningView.blurAlpha = CGFloat(slider.value)
+            alphaLabel.text = "Alpha: " + String(format: "%.2f", slider.value)
+        }
+
+        @objc func radiusValueDidChange(slider: UISlider) {
+            let value = Int(slider.value)
+            videoView.lightningView.blurRadius = value
+            radiusLabel.text = "Radius: \(value)"
+        }
+
         var mode: Mode = .pageSheet {
             didSet {
                 updateLayout(from: oldValue)
@@ -252,14 +295,19 @@ private extension Streaming.ViewController {
     }
 
     func setupContainer() {
-        [containerView, contentView].forEach {
+        [containerView, contentView, debugView].forEach {
             $0.translatesAutoresizingMaskIntoConstraints = false
         }
+        view.addSubview(debugView)
         view.addSubview(containerView)
         view.addSubview(videoView)
         containerView.addSubview(contentView)
 
         NSLayoutConstraint.activate([
+            debugView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
+            debugView.centerXAnchor.constraint(equalTo: view.centerXAnchor),
+            debugView.bottomAnchor.constraint(equalTo: containerView.topAnchor, constant: -20),
+
             containerView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
             containerView.centerXAnchor.constraint(equalTo: view.centerXAnchor),
             containerBottomConstraint,

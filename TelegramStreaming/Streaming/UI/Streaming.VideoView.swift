@@ -16,7 +16,7 @@ extension Streaming {
 
     final class VideoView: UIView {
 
-        private let lightningView: Streaming.LightningView
+        let lightningView: Streaming.LightningView
         private var videoContent: CALayer?
 
         private(set) lazy var closeButton = UIButton {
